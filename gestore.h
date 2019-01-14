@@ -1,0 +1,4 @@
+#ifndef ESERCIZI_SO_GESTORE_H
+#define ESERCIZI_SO_GESTORE_H
+
+#endif

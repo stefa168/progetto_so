@@ -9,7 +9,8 @@
 
 #define MAX_LEN 128
 
-int readConfiguration(int *settings, int argc, char *argv[]) {
+
+int readConfiguration(int *settings, int settingsNum, int argc, char *argv[]) {
     char *path = "opt.conf";
     int configFD;
     struct _IO_FILE *configFile;
@@ -20,6 +21,7 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
                                    "30\n"
                                    "2\n"
                                    "4\n"
+                                   "5\n"
                                    "5\n"
                                    "3";
 
@@ -65,10 +67,10 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
                 close(configFD);
 
                 /* Riapriamo il file per poter leggere le impostazioni */
-                /*if ((configFD = open(path, O_RDONLY)) == -1) {
+                if ((configFD = open(path, O_RDONLY)) == -1) {
                     PRINT_ERRNO
                     exit(-1);
-                }*/
+                }
                 break;
             }
 
@@ -77,6 +79,7 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
                 exit(-1);
         }
     }
+    close(configFD);
 
     /* Passiamo ad usare un FILE per poter usare qualche funzione più ad alto livello. */
     configFile = fopen(path, "r");
@@ -86,7 +89,7 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
         exit(-1);
     }
 
-    while (settingsFoundCount < 7) {
+    while (settingsFoundCount < settingsNum) {
         readChar = (char) fgetc(configFile);
         if (readContentSize > MAX_LEN) {
             PRINT_ERROR("Numero massimo di caratteri superato")
@@ -118,18 +121,19 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
                     if (errno != 0) {
                         PRINT_ERRNO
                         exit(-1);
-                    } else if (settingsFoundCount != 6 && readChar == EOF) {
+                    } else if (settingsFoundCount != (settingsNum - 1) && readChar == EOF) {
                         PRINT_ERROR("Mancano delle impostazioni. Valutare se cancellare opt.conf")
                         exit(-1);
                     }
 
                     settings[settingsFoundCount] = (int) strtol(readContent, NULL, 10);
+                    //todo gestire possibili errori di strtol
 #ifdef DEBUG
                     printf("Trovato %d\n", settings[settingsFoundCount]);
 #endif
                     settingsFoundCount++;
 
-                    for (i = 0; i < MAX_LEN; i++) {
+                    for (i = 0; i < readContentSize; i++) {
                         readContent[i] = 0;
                     }
                     readContentSize = 0;
@@ -143,5 +147,6 @@ int readConfiguration(int *settings, int argc, char *argv[]) {
         }
     }
 
+    fclose(configFile);
     return 0;
 }

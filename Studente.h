@@ -1,0 +1,4 @@
+#ifndef ESERCIZI_SO_STUDENTE_H
+#define ESERCIZI_SO_STUDENTE_H
+
+#endif

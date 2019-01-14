@@ -4,17 +4,15 @@
 #include "settings_reader.h"
 
 
-
-
 int main(int argc, char *argv[]) {
-    int settings[7];
-    int i;
-
-    readConfiguration(settings, argc, argv);
-
-    for (i = 0; i < 7; i++) {
-        printf("%d\n", settings[i]);
-    }
+//    int settings[8];
+//    int i;
+//
+//    readConfiguration(settings, 8, argc, argv);
+//
+//    for (i = 0; i < 8; i++) {
+//        printf("%d\n", settings[i]);
+//    }
 
     return 0;
 }
