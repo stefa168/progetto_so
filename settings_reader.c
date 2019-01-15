@@ -147,7 +147,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     setSettingsValue(settingsData, settingsFoundCount, (int) strtol(readContent, NULL, 10));
                     //todo gestire possibili errori di strtol
 
-#ifdef DEBUG
+#ifdef S_R_DEBUG
                     printf("Trovato %d\n", getSettingsValue(settingsData, settingsFoundCount));
 #endif
 
@@ -158,7 +158,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     if (settingsFoundCount == 5) {
                         settingsData->numOfPreferences = settingsData->maxGroupPref - settingsData->minGroupPref + 1;
 
-#ifdef DEBUG
+#ifdef S_R_DEBUG
                         printf("Aggiornato il numero di impostazioni da leggere da %d a %d\n", settingsNum,
                                settingsNum + settingsData->numOfPreferences);
 #endif
@@ -225,10 +225,10 @@ void setSettingsValue(SettingsData *data, int index, int value) {
             data->nof_refuse = value;
             break;
         default: {
-            if (index > data->settingsCount + data->numOfPreferences - 1) {
+            if (index > data->settingsCount + data->numOfPreferences-1) {
                 PRINT_ERROR_EXIT("Tentata una scrittura a un'indice delle impostazioni errato.", -1)
             } else {
-                data->preferencePercentages[index - data->settingsCount - 1] = value;
+                data->preferencePercentages[index - data->settingsCount] = value;
                 PRINT_IF_ERRNO_EXIT(-1)
             }
         }
