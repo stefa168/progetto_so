@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <memory.h>
-#include "macros.h"
+#include "../macros.h"
 #include "settings_reader.h"
 
 SettingsData *readConfiguration(int argc, char *argv[]) {
@@ -16,7 +16,12 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
 
     SettingsData *settingsData = malloc(sizeof(SettingsData));
 
-    char defaultSettingsString[] = "# Numero di Studenti\n"
+    char defaultSettingsString[] = "# Impostazioni della simulazione.\n"
+                                   "# NOTA BENE: tutti i valori devono essere INTERI e devono essere solo composti da cifre decimali.\n"
+                                   "#            L'ordine delle impostazioni è IMPORTANTE! In caso di problemi, è sufficiente eliminare\n"
+                                   "#            questo file per farne generare uno nuovo coi valori di default.\n"
+                                   "\n"
+                                   "# Numero di Studenti\n"
                                    "5\n"
                                    "\n"
                                    "# tempo della simulazione\n"
@@ -27,17 +32,18 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                                    "# Voto AdE massimo\n"
                                    "30\n"
                                    "\n"
-                                   "# numero di elementi minimo del gruppo. non è possibile indicare meno di 1.\n"
+                                   "# Seguono due impostazioni per indicare il range (estremi inclusi) delle possibili preferenze degli studenti.\n"
+                                   "# Numero di elementi minimo del gruppo. Non è possibile indicare meno di 1.\n"
                                    "2\n"
-                                   "# numero di elementi massimo del gruppo. massimo 10.\n"
+                                   "# Numero di elementi massimo del gruppo. Massimo 10.\n"
                                    "4\n"
                                    "\n"
-                                   "# numero massimo di inviti inviabili\n"
+                                   "# Numero massimo di inviti inviabili\n"
                                    "5\n"
-                                   "# numero massimo di rifiuti\n"
+                                   "# Numero massimo di rifiuti\n"
                                    "3\n"
                                    "\n"
-                                   "#seguono le percentuali delle preferenze. Se devo scrivere 50% (0.5), indicherò 50.\n"
+                                   "# Seguono le percentuali delle preferenze. Se devo scrivere 50% (0.5), indicherò 50.\n"
                                    "# 2 componenti\n"
                                    "25\n"
                                    "# 3 componenti\n"

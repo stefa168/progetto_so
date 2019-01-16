@@ -3,7 +3,8 @@
 
 #define MAX_LEN 128
 #define NOF_SETTINGS 8
-#define S_R_DEBUG
+
+//#define S_R_DEBUG
 
 typedef struct SettingsData {
     int settingsCount;
