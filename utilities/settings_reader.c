@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <memory.h>
-#include "../macros.h"
+#include "macros.h"
 #include "settings_reader.h"
 
 SettingsData *readConfiguration(int argc, char *argv[]) {

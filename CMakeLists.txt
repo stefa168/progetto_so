@@ -3,7 +3,7 @@ project(Esercizi_SO C)
 
 set(CMAKE_C_STANDARD 90)
 
-set(general_imports macros.h utilities/utils.c utilities/utils.h utilities/ipc_utils.c utilities/ipc_utils.h)
+set(general_imports utilities/macros.h utilities/utils.c utilities/utils.h utilities/ipc_utils.c utilities/ipc_utils.h)
 set(settings_reader utilities/settings_reader.c utilities/settings_reader.h)
 
 add_executable(Test test.c)

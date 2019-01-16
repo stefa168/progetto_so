@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include "gestore.h"
 #include "utilities/settings_reader.h"
-#include "macros.h"
+#include "utilities/macros.h"
 #include "utilities/ipc_utils.h"
 
 
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 
     // Gestire prima della logica degli studenti tutta la parte della memoria e il comportamento del gestore
 
-
+    
 
     // IPC CREAT e EXCL insieme creano la coda se non esiste, ma se esiste lanciano un errore.
 //    msgID = msgget(IPC_SIM_KEY, IPC_CREAT | IPC_EXCL | S_IWUSR | S_IRUSR);
