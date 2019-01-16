@@ -1,7 +1,7 @@
-#ifndef ESERCIZI_SO_MACROS_H
-#define ESERCIZI_SO_MACROS_H
+#ifndef PROGETTO_SO_MACROS_H
+#define PROGETTO_SO_MACROS_H
 
-/* gQueste due inclusioni sono essenziali per permettere a qualsiasi file che usa queste macro di funzionare
+/* Queste due inclusioni sono essenziali per permettere a qualsiasi file che usa queste macro di funzionare
  * senza dare errori.
  */
 #include <errno.h>

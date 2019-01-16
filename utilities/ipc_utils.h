@@ -1,22 +1,12 @@
-#ifndef ESERCIZI_SO_IPC_UTILS_H
-#define ESERCIZI_SO_IPC_UTILS_H
+#ifndef PROGETTO_SO_IPC_UTILS_H
+#define PROGETTO_SO_IPC_UTILS_H
+
+#include "types.h"
 
 /**
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
  */
 #define IPC_SIM_KEY 34197
-
-typedef enum {
-    INVITE,
-    ACCEPT,
-    REJECT
-} MessageType;
-
-typedef struct {
-    long mType;
-    int from;
-    MessageType type;
-} SimMessage;
 
 int createMessageQueue();
 
@@ -24,17 +14,7 @@ int getMessageQueue(int key);
 
 void destroyMessageQueue(int id);
 
-/***********************************************************************************************************************
- * I vari semafori che utilizziamo durante l'esecuzione della simulazione.
- * EVERYONE READY serve per essere sicuri che tutti gli studenti siano pronti per iniziare la simulazione.
- * EVERYONE_ENDED serve alla fine della simulazione per attendere che tutti gli studenti abbiano terminato il lavoro.
- * STUDENT serve ad indicare che vi è un'interazione con un semaforo di uno specifico studente.
- */
-typedef enum {
-    SEMAPHORE_EVERYONE_READY,
-    SEMAPHORE_EVERYONE_ENDED,
-    SEMAPHORE_STUDENT
-} SemaphoreType;
+/**********************************************************************************************************************/
 
 /**
  * @brief Richiedi i semafori al SO
@@ -114,8 +94,6 @@ void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
  */
 void destroySemaphores(int id);
 
-/***********************************************************************************************************************
- *
- */
+/**********************************************************************************************************************/
 
 #endif
