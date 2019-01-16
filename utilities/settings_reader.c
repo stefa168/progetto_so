@@ -75,7 +75,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                 break;
 
             case ENOENT: {
-                printf("Il file di configurazione non esiste. Sara' creato\n");
+                printf("[Lettore Impostazioni] W: Il file di configurazione non esiste. Sara' creato\n");
                 /*
                  * Apriamo il file in modalità sola scrittura
                  * Lo creiamo se non esiste
@@ -115,7 +115,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
     while (settingsFoundCount < settingsNum) {
         readChar = (char) fgetc(configFile);
         if (readContentSize > MAX_LEN) {
-            PRINT_ERROR("Numero massimo di caratteri superato")
+            PRINT_ERROR("[Lettore Impostazioni] E: Numero massimo di caratteri superato")
             exit(-1);
         }
 
@@ -132,7 +132,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                 } else if (readChar == EOF) {
                     PRINT_ERRNO_EXIT(-1)
                 } else {
-                    fprintf(stderr, "0: Trovato carattere non consentito ('%c')", readChar);
+                    fprintf(stderr, "[Lettore Impostazioni] E: (0) Trovato carattere non consentito ('%c' %d)",
+                            readChar, readChar);
                     exit(-1);
                 }
                 break;
@@ -145,7 +146,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     if (errno) {
                         PRINT_ERRNO_EXIT(-1)
                     } else if (settingsFoundCount != (settingsNum - 1) && readChar == EOF) {
-                        PRINT_ERROR("Mancano delle impostazioni. Valutare se cancellare opt.conf")
+                        PRINT_ERROR(
+                                "[Lettore Impostazioni] E: Mancano delle impostazioni. Valutare se cancellare opt.conf")
                         exit(-1);
                     }
 
@@ -183,7 +185,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     readContentSize = 0;
                     state = 0;
                 } else {
-                    fprintf(stderr, "1: Trovato carattere non consentito ('%c')", readChar);
+                    fprintf(stderr, "[Lettore Impostazioni] E: (1) Trovato carattere non consentito ('%c', %d)",
+                            readChar, readChar);
                     exit(-1);
                 }
                 break;
@@ -231,8 +234,9 @@ void setSettingsValue(SettingsData *data, int index, int value) {
             data->nof_refuse = value;
             break;
         default: {
-            if (index > data->settingsCount + data->numOfPreferences-1) {
-                PRINT_ERROR_EXIT("Tentata una scrittura a un'indice delle impostazioni errato.", -1)
+            if (index > data->settingsCount + data->numOfPreferences - 1) {
+                PRINT_ERROR_EXIT(
+                        "[Lettore Impostazioni] E: Tentata una scrittura a un'indice delle impostazioni errato.", -1)
             } else {
                 data->preferencePercentages[index - data->settingsCount] = value;
                 PRINT_IF_ERRNO_EXIT(-1)
@@ -260,9 +264,9 @@ int getSettingsValue(SettingsData *data, int index) {
         case 7:
             return data->nof_refuse;
         default: {
-
             if (index > data->settingsCount + data->numOfPreferences - 1) {
-                PRINT_ERROR_EXIT("Tentata una lettura a un'indice delle impostazioni errato.", -1)
+                PRINT_ERROR_EXIT("[Lettore Impostazioni] E: Tentata una lettura a un'indice delle impostazioni errato.",
+                                 -1)
             } else {
                 return data->preferencePercentages[index - data->settingsCount - 1];
             }
