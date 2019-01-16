@@ -4,7 +4,7 @@
 /**
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
  */
-#define IPC_OWN_KEY 34197
+#define IPC_SIM_KEY 34197
 
 //messaggi
 int createMessageQueue();
@@ -49,6 +49,51 @@ void initializeSemaphores(int id, int numOfStudents);
  *                  In questo caso, DEVE essere passato l'ID dello studente.
  */
 void initializeSemaphore(int id, SemaphoreType which, int count, int studentID);
+
+/**
+ * @return ID dell'aggregato di semafori legato alla chiave IPC_SIM_KEY
+ */
+int getSemaphoresID();
+
+/**
+ * @brief Effettua un'operazione di riserva su un semaforo.
+ *        Se usato con i semafori degli studenti, lancia un errore. Usare il metodo apposito.
+ * @param id ID dell'aggregato di semafori
+ * @param which Quale semaforo riservare
+ */
+void reserveSemaphore(int id, SemaphoreType which);
+
+/**
+ * @brief Effettua un'operazione di rilasio su un semaforo.
+ *        Se usato con i semafori degli studenti, lancia un errore. Usare il metodo apposito.
+ * @param id ID dell'aggregato di semafori
+ * @param which Quale semaforo rilasciare
+ */
+void releaseSemaphore(int id, SemaphoreType which);
+
+/**
+ * @brief Effettua un'operazione di riserva su un semaforo studente.
+ * @param id ID dell'aggregato di semafori
+ * @param studentID ID dello studente il cui semaforo è da riservare.
+ */
+void reserveStudentSemaphore(int id, int studentID);
+
+/**
+ * @brief Effettua un'operazione di rilascio su un semaforo studente.
+ * @param id ID dell'aggregato di semafori
+ * @param studentID ID dello studente il cui semaforo è da rilasciare.
+ */
+void releaseStudentSemaphore(int id, int studentID);
+
+/**
+ * @brief Questa funzione è bloccante e fa attendere a un processo che un semaforo raggiunga un certo valore value.
+ *        Se which è SEMAPHORE_STUDENT, è necessario passarne l'ID, altrimenti il campo è ignorato.
+ * @param id ID dell'aggregato di semafori
+ * @param which Per quale semaforo attendere
+ * @param value Fino a che valore attendere
+ * @param studentID ID dello studente il cui semaforo deve raggiungere value per sbloccare il processo.
+ */
+void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
 
 /**
  * @brief Cancella l'aggregato di semafori.
