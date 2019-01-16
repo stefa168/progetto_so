@@ -88,13 +88,6 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                 }
 
                 write(configFD, defaultSettingsString, strlen(defaultSettingsString));
-                /* Ricordiamoci di chiudere il file */
-                /*close(configFD);*/
-
-                /* Riapriamo il file per poter leggere le impostazioni */
-                /*if ((configFD = open(path, O_RDONLY)) == -1) {
-                    PRINT_ERRNO_EXIT(-1)
-                }*/
                 break;
             }
 
@@ -151,9 +144,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                         exit(-1);
                     }
 
-//                    settings[settingsFoundCount] = (int) strtol(readContent, NULL, 10);
                     setSettingsValue(settingsData, settingsFoundCount, (int) strtol(readContent, NULL, 10));
-                    //todo gestire possibili errori di strtol
+                    PRINT_IF_ERRNO_EXIT(-1)
 
 #ifdef S_R_DEBUG
                     printf("Trovato %d\n", getSettingsValue(settingsData, settingsFoundCount));
@@ -197,7 +189,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                 if (readChar == '\n') {
                     state = 0;
                 } else if (readChar == EOF) {
-                    PRINT_ERRNO_EXIT(-1)
+                    PRINT_IF_ERRNO_EXIT(-1)
+                    PRINT_ERROR_EXIT("[Lettore Impostazioni] E?: (2) Raggiunta la fine del file in un commento", -1)
                 }
             }
         }
