@@ -6,18 +6,31 @@
  */
 #define IPC_SIM_KEY 34197
 
-//messaggi
+typedef enum {
+    INVITE,
+    ACCEPT,
+    REJECT
+} MessageType;
+
+typedef struct {
+    long mType;
+    int from;
+    MessageType type;
+} SimMessage;
+
 int createMessageQueue();
 
 int getMessageQueue(int key);
 
-/*
+void destroyMessageQueue(int id);
+
+/***********************************************************************************************************************
  * I vari semafori che utilizziamo durante l'esecuzione della simulazione.
  * EVERYONE READY serve per essere sicuri che tutti gli studenti siano pronti per iniziare la simulazione.
  * EVERYONE_ENDED serve alla fine della simulazione per attendere che tutti gli studenti abbiano terminato il lavoro.
  * STUDENT serve ad indicare che vi è un'interazione con un semaforo di uno specifico studente.
  */
-typedef enum SemaphoreType {
+typedef enum {
     SEMAPHORE_EVERYONE_READY,
     SEMAPHORE_EVERYONE_ENDED,
     SEMAPHORE_STUDENT
@@ -99,8 +112,10 @@ void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
  * @brief Cancella l'aggregato di semafori.
  * @param id L'ID dell'aggregato di semafori.
  */
-void deleteSemaphores(int id);
+void destroySemaphores(int id);
 
-// dati
+/***********************************************************************************************************************
+ *
+ */
 
 #endif
