@@ -1,7 +1,7 @@
-//#define DEBUG
+//#define DEBUG_GESTORE
 
 #include <stdio.h>
-#include "settings_reader.h"
+#include "utilities/settings_reader.h"
 
 
 int main(int argc, char *argv[]) {

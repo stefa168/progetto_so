@@ -1,6 +1,12 @@
 #ifndef ESERCIZI_SO_MACROS_H
 #define ESERCIZI_SO_MACROS_H
 
+/* gQueste due inclusioni sono essenziali per permettere a qualsiasi file che usa queste macro di funzionare
+ * senza dare errori.
+ */
+#include <errno.h>
+#include <memory.h>
+
 /* Grazie Professore */
 #define PRINT_ERRNO fprintf(stderr, "%s:%d: Errore #%3d \"%s\"\n", __FILE__, __LINE__, errno, strerror(errno));
 #define PRINT_ERRNO_EXIT(e) {PRINT_ERRNO exit(e);}
