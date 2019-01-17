@@ -1,12 +1,22 @@
 #ifndef PROGETTO_SO_IPC_UTILS_H
 #define PROGETTO_SO_IPC_UTILS_H
 
+#include <sys/types.h>
+#include <sys/sem.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include "types.h"
+#include "macros.h"
 
 /**
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
  */
 #define IPC_SIM_KEY 34197
+#define GLOBAL_SEMAPHORE_COUNT 0
+
+#define SEMAPHORE_EVERYONE_READY_ID 0
+#define SEMAPHORE_EVERYONE_ENDED_ID 1
+#define SEMAPHORE_STUDENT_BASE_ID 4
 
 int createMessageQueue();
 
@@ -78,15 +88,23 @@ void reserveStudentSemaphore(int id, int studentID);
  */
 void releaseStudentSemaphore(int id, int studentID);
 
+///**
+// * @brief Questa funzione è bloccante e fa attendere a un processo che un semaforo raggiunga un certo valore value.
+// *        Se which è SEMAPHORE_STUDENT, è necessario passarne l'ID, altrimenti il campo è ignorato.
+// * @param id ID dell'aggregato di semafori
+// * @param which Per quale semaforo attendere
+// * @param value Fino a che valore attendere
+// * @param studentID ID dello studente il cui semaforo deve raggiungere value per sbloccare il processo.
+// */
+//void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
+
 /**
- * @brief Questa funzione è bloccante e fa attendere a un processo che un semaforo raggiunga un certo valore value.
- *        Se which è SEMAPHORE_STUDENT, è necessario passarne l'ID, altrimenti il campo è ignorato.
+ * @brief Blocca un processo e fallo attendere fino a quando un semaforo specificato non è a 0.
  * @param id ID dell'aggregato di semafori
  * @param which Per quale semaforo attendere
- * @param value Fino a che valore attendere
- * @param studentID ID dello studente il cui semaforo deve raggiungere value per sbloccare il processo.
+ * @param studentID Opzionale //TODO
  */
-void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
+void waitForZero(int id, SemaphoreType which, int studentID);
 
 /**
  * @brief Cancella l'aggregato di semafori.

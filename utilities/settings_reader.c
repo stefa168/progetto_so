@@ -174,6 +174,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     for (i = 0; i < readContentSize; i++) {
                         readContent[i] = 0;
                     }
+//                    explicit_bzero(readContent, readContentSize * sizeof(int)); //todo
                     readContentSize = 0;
                     state = 0;
                 } else {

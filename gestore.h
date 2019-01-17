@@ -11,6 +11,8 @@
 #include "utilities/ipc_utils.h"
 #include "utilities/types.h"
 
+#define STUDENT_PATH "Studente"
+
 void printFoundSettings(SettingsData *settings);
 
 #endif

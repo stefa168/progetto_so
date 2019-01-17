@@ -6,6 +6,8 @@
  */
 #include <errno.h>
 #include <memory.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Grazie Professore */
 #define PRINT_ERRNO fprintf(stderr, "%s:%d: Errore #%3d \"%s\"\n", __FILE__, __LINE__, errno, strerror(errno));

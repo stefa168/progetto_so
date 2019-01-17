@@ -4,15 +4,51 @@
 
 int main(int argc, char *argv[]) {
     SettingsData *settings;
-    int msgID;
+    int semid;
+    int *childrenPIDs;
+    int childrenCounter = 0;
+    char childrenIDString[16] = {0};
 
     settings = readConfiguration(argc, argv);
+
+    childrenPIDs = calloc((size_t) settings->pop_size, sizeof(int));
 
 #ifdef DEBUG_GESTORE
     printFoundSettings(settings);
 #endif
 
     // Gestire prima della logica degli studenti tutta la parte della memoria e il comportamento del gestore
+    semid = createSemaphores(1);
+    initializeSemaphore(semid, SEMAPHORE_EVERYONE_READY, settings->pop_size, 0);
+    printf("PID PADRE = %d; Semid = %d\n",getpid(), semid);
+
+    for (childrenCounter = 0; childrenCounter < settings->pop_size; childrenCounter++) {
+        switch (childrenPIDs[childrenCounter] = fork()) {
+            case -1: {
+                // todo killare tutti i figli
+                PRINT_ERRNO_EXIT(-1)
+            }
+
+            case 0: {
+                /* Siamo un figlio, avviamo execv */
+                sprintf(childrenIDString, "%d", childrenCounter);
+                execl(STUDENT_PATH, STUDENT_PATH, childrenIDString);
+                // todo verificare cosa fare se ci sono problemi
+                //todo intercettare il segnale dei figli nel padre
+                PRINT_ERRNO_EXIT(-1)
+            }
+            default: {
+                //todo manage new children
+                break;
+            }
+        }
+    }
+
+    // todo waitforzero
+    waitForZero(semid, SEMAPHORE_EVERYONE_READY, 0);
+
+    destroySemaphores(semid);
+
 
 
 

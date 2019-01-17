@@ -1,13 +1,12 @@
 #ifndef PROGETTO_SO_TYPES_H
 #define PROGETTO_SO_TYPES_H
 
-#include "settings_reader.h"
-
 typedef enum {
     INVITE,
     ACCEPT,
     REJECT
 } MessageType;
+
 typedef struct {
     long mType;
     int from;
