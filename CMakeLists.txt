@@ -10,3 +10,4 @@ add_executable(Test test.c)
 
 add_executable(Gestore gestore.c gestore.h ${settings_reader} ${general_imports})
 add_executable(Studente Studente.c Studente.h ${general_imports})
+add_dependencies(Gestore Studente)

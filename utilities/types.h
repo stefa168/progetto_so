@@ -1,6 +1,8 @@
 #ifndef PROGETTO_SO_TYPES_H
 #define PROGETTO_SO_TYPES_H
 
+#include <stdbool.h>
+
 typedef enum {
     INVITE,
     ACCEPT,
@@ -22,6 +24,7 @@ typedef struct {
 typedef enum {
     SEMAPHORE_EVERYONE_READY,
     SEMAPHORE_EVERYONE_ENDED,
+    SEMAPHORE_CAN_PRINT,
     SEMAPHORE_STUDENT
 } SemaphoreType;
 
@@ -41,12 +44,21 @@ typedef struct {
     int nof_refuse;
 
     int numOfPreferences;
-
     int *preferencePercentages;
 } SettingsData;
 
 typedef struct {
-    SettingsData *settings;
+    int groupOwnerID;
+    int bestMarkID;
+    int studentsCount;
+    int voto_AdE;
+    int nofElemsPref;
+    bool groupClosed;
+} StudentData;
+
+typedef struct {
+    SettingsData settings;
+    StudentData students[];
 } SimulationData;
 
 #endif

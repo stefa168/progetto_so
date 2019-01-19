@@ -5,8 +5,10 @@
 #include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/shm.h>
 #include "types.h"
 #include "macros.h"
+#include <unistd.h>
 
 /**
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
@@ -16,7 +18,8 @@
 
 #define SEMAPHORE_EVERYONE_READY_ID 0
 #define SEMAPHORE_EVERYONE_ENDED_ID 1
-#define SEMAPHORE_STUDENT_BASE_ID 4
+#define SEMAPHORE_CAN_PRINT_ID 4
+#define SEMAPHORE_STUDENT_BASE_ID 5
 
 int createMessageQueue();
 
@@ -114,4 +117,15 @@ void destroySemaphores(int id);
 
 /**********************************************************************************************************************/
 
+int createSharedMemory(size_t size);
+
+int getSharedMemoryID();
+
+SimulationData *attachSharedMemory(int id);
+
+void detachSharedMemory(void *addr);
+
+void destroySharedMemory(int id);
+
 #endif
+
