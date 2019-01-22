@@ -14,7 +14,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
     int i;
     int settingsNum = NOF_SETTINGS;
 
-    SettingsData *settingsData = malloc(sizeof(SettingsData));
+    SettingsData *settingsData = malloc(sizeof(SettingsData) + sizeof(int) * MAX_PREFERENCES);
 
     char defaultSettingsString[] = "# Impostazioni della simulazione.\n"
                                    "# NOTA BENE: tutti i valori devono essere INTERI e devono essere solo composti da cifre decimali.\n"
@@ -88,6 +88,8 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                 }
 
                 write(configFD, defaultSettingsString, strlen(defaultSettingsString));
+
+                errno = 0;
                 break;
             }
 
@@ -158,6 +160,12 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     if (settingsFoundCount == 5) {
                         settingsData->numOfPreferences = settingsData->maxGroupPref - settingsData->minGroupPref + 1;
 
+                        if (settingsData->numOfPreferences > MAX_PREFERENCES) {
+                            fprintf(stderr, "[Lettore Impostazioni] E: Inserite troppe preferenze. Massimo: %d",
+                                    MAX_PREFERENCES);
+                            exit(-1);
+                        }
+
 #ifdef S_R_DEBUG
                         printf("Aggiornato il numero di impostazioni da leggere da %d a %d\n", settingsNum,
                                settingsNum + settingsData->numOfPreferences);
@@ -165,8 +173,11 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
 
                         settingsNum += settingsData->numOfPreferences;
 
-                        settingsData->preferencePercentages = calloc((size_t) settingsData->numOfPreferences,
-                                                                     sizeof(int));
+
+
+//                        settingsData->preferencePercentages = calloc((size_t) settingsData->numOfPreferences,
+//                                                                     sizeof(int));
+
                     }
 
                     settingsFoundCount++;

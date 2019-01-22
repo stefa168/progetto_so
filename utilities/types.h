@@ -44,7 +44,7 @@ typedef struct {
     int nof_refuse;
 
     int numOfPreferences;
-    int *preferencePercentages;
+    int preferencePercentages[];
 } SettingsData;
 
 typedef struct {
