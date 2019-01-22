@@ -1,14 +1,17 @@
 #ifndef PROGETTO_SO_IPC_UTILS_H
 #define PROGETTO_SO_IPC_UTILS_H
 
+//#define IPC_MEM_DEBUG
+//#define IPC_SEM_DEBUG
+
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/shm.h>
+#include <unistd.h>
 #include "types.h"
 #include "macros.h"
-#include <unistd.h>
 
 /**
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
