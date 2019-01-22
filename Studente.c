@@ -4,6 +4,7 @@ int myID;
 int sharedMemoryID, semaphoresID;
 SimulationData *simulationData;
 StudentData *this;
+SettingsData *settings;
 
 int main(int argc, char *argv[]) {
     semaphoresID = getSemaphoresID();
@@ -12,30 +13,33 @@ int main(int argc, char *argv[]) {
 
     myID = (int) strtol(argv[1], NULL, 10);
 
-    PRINT_IF_ERRNO_EXIT(-1)
+    this = &simulationData->students[myID];
+    settings = &simulationData->settings;
 
-    printf("%d\n", simulationData->settings.numOfPreferences);
-    printf("%d\n", simulationData->settings.preferencePercentages[0]);
+
+    PRINT_IF_ERRNO_EXIT(-1)
 
     initializeStudent();
 
     reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
     printf("[%d]: Sono lo studente %d\n", getpid(), myID);
-    printf("[%d]Il mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", this->voto_AdE,
+    printf("[%d]Il mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", getpid(), this->voto_AdE,
            this->nofElemsPref);
-    printf("[%d]Tutto qui.\n");
+    printf("[%d]Tutto qui.\n\n", getpid());
 
     releaseSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
     reserveSemaphore(semaphoresID, SEMAPHORE_EVERYONE_READY);
+    waitForZero(semaphoresID, SEMAPHORE_EVERYONE_READY, 0);
     return 0;
 }
 
 void initializeStudent() {
+    int i, minPref, maxPref;
     int numOfPreferences = simulationData->settings.numOfPreferences;
     int *prefValues = calloc((size_t) numOfPreferences, sizeof(int));
-    int i, minPref, maxPref, myPref;
+    int *myPref = &(this->nofElemsPref);
 
     minPref = simulationData->settings.minGroupPref;
     maxPref = simulationData->settings.maxGroupPref;
@@ -46,8 +50,13 @@ void initializeStudent() {
 
     initRandom((unsigned int) getpid());
 
-    this = &simulationData->students[myID];
 
-    myPref = getWeightedRand(numOfPreferences, prefValues, simulationData->settings.preferencePercentages);
+#if PREFERENCE_LOGIC == 0
+    *myPref = getWeightedRand(numOfPreferences, prefValues, simulationData->settings.preferencePercentages);
     this->nofElemsPref = myPref;
+#else
+    *myPref = getWeighted(settings->pop_size, myID, numOfPreferences, prefValues, settings->preferencePercentages);
+#endif
+
+
 }

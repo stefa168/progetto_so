@@ -7,6 +7,8 @@
 #include "utilities/utils.h"
 #include <unistd.h>
 
+#define PREFERENCE_LOGIC 1
+
 void initializeStudent();
 
 #endif
