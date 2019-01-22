@@ -7,4 +7,6 @@ int getRandomRange(int min, int max);
 
 int getWeightedRand(int size, int values[], int percentages[]);
 
+int getWeighted(int size, int value, int percCount, int *values, int *percentages);
+
 #endif
