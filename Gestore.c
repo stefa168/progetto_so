@@ -205,6 +205,7 @@ void abortSimulationOnSignal(int sigid) {
 
 void freeAllocatedMemory() {
     free(settings);
+    free(childrenPIDs);
 }
 
 void waitForZombieChildren() {
