@@ -114,9 +114,11 @@ void initializeStudent() {
     *myPref = getWeighted(settings->pop_size, myID, numOfPreferences, prefValues, settings->preferencePercentages);
 #endif
 
+    /* Inizializziamo il resto dei valori che ogni studente ha per indicare le informazioni di un gruppo. */
     this->studentsCount = 1;
     this->bestMarkID = myID;
     this->groupClosed = false;
+    /* Questo valore sarà l'unico aggiornato se lo studente viene invitato in un gruppo. Serve per calcolare il voto! */
     this->groupOwnerID = myID;
 
     /* Non dimentichiamo di liberare la memoria che è utilizzata durante l'esecuzione del metodo */
