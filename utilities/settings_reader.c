@@ -14,7 +14,7 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
     int i;
     int settingsNum = NOF_SETTINGS;
 
-    SettingsData *settingsData = malloc(sizeof(SettingsData) + sizeof(int) * MAX_PREFERENCES);
+    SettingsData *settingsData = malloc(sizeof(SettingsData));
 
     char defaultSettingsString[] = "# Impostazioni della simulazione.\n"
                                    "# NOTA BENE: tutti i valori devono essere INTERI e devono essere solo composti da cifre decimali.\n"
@@ -172,12 +172,6 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
 #endif
 
                         settingsNum += settingsData->numOfPreferences;
-
-
-
-//                        settingsData->preferencePercentages = calloc((size_t) settingsData->numOfPreferences,
-//                                                                     sizeof(int));
-
                     }
 
                     settingsFoundCount++;

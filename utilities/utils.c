@@ -27,6 +27,7 @@ int getWeighted(int size, int value, int percCount, int *values, int *percentage
         return values[0];
     }
     int i, sum;
+
     for (i = 0, sum = 0; i < percCount; i++) {
         sum += (int) (size * percentages[i] / (float) 100);
 //        printf("%d ", sum);

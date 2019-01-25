@@ -18,4 +18,6 @@
 #define PRINT_ERROR(x) fprintf(stderr, "[%d] %s:%d: %s",getpid(),  __FILE__, __LINE__, x);
 #define PRINT_ERROR_EXIT(x, e) PRINT_ERROR(x) exit(e);
 
+#define GROUP_PENALTY 3
+
 #endif

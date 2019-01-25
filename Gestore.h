@@ -1,6 +1,7 @@
 #ifndef PROGETTO_SO_GESTORE_H
 #define PROGETTO_SO_GESTORE_H
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -16,5 +17,11 @@
 #define STUDENT_PATH "Studente"
 
 void printFoundSettings(SettingsData *settings);
+
+void terminateSimulationOnSignal(int sigid);
+
+void instantiateChildren();
+
+void closeIPC();
 
 #endif

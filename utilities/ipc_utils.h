@@ -3,6 +3,7 @@
 
 //#define IPC_MEM_DEBUG
 //#define IPC_SEM_DEBUG
+#define IPC_MSG_DEBUG
 
 #include <sys/types.h>
 #include <sys/sem.h>
@@ -17,12 +18,34 @@
  * @def Chiave univoca per accedere ai dati IPC della simulazione.
  */
 #define IPC_SIM_KEY 34197
-#define GLOBAL_SEMAPHORE_COUNT 0
+#define GLOBAL_SEMAPHORE_COUNT 4
 
+/*
+ * Semaforo utilizzato per far attendere a tutti i processi figli e al processo padre che tutti siano pronti prima
+ * di iniziare la simulazione
+ */
 #define SEMAPHORE_EVERYONE_READY_ID 0
+
+/*
+ * Semaforo utilizzato per attendere che tutti gli studenti terminino la simulazione.
+ */
 #define SEMAPHORE_EVERYONE_ENDED_ID 1
-#define SEMAPHORE_CAN_PRINT_ID 4
-#define SEMAPHORE_STUDENT_BASE_ID 5
+
+/*
+ * Semaforo utilizzato per avvisare gli studenti della disponibilità dei voti.
+ */
+#define SEMAPHORE_MARKS_AVAILABLE_ID 2
+
+/*
+ * Semaforo utilizzato per evitare possibile interleaving delle stampe di processi differenti.
+ */
+#define SEMAPHORE_CAN_PRINT_ID 3
+
+/*
+ * Questo valore indica la base con la quale iniziano i semafori dei singoli studenti. Servono per evitare che gli altri
+ * studenti possano interagire con uno studente che potrebbe cambiare stato (e quindi entrare in un gruppo o chiuderlo)
+ */
+#define SEMAPHORE_STUDENT_BASE_ID 4
 
 int createMessageQueue();
 
@@ -39,13 +62,13 @@ void destroyMessageQueue(int id);
  */
 int createSemaphores(int count);
 
+
 /**
- * @brief Inizializza i semafori corrispondenti all'ID passato.
- *        Dobbiamo dedicare a ogni studente un semaforo per alcune operazioni importanti.
- * @param id ID dell'aggregato di semafori
- * @param numOfStudents Quanti studenti abbiamo nella simulazione.
+ * @brief Inizializza il semaforo dello studente studentID.
+ * @param id ID del vettore di semafori
+ * @param studentID ID dello studente il cui semaforo deve essere inizializzato.
  */
-void initializeSemaphores(int id, int numOfStudents);
+void initializeStudentSemaphore(int id, int studentID);
 
 /**
  * @brief Inizializza uno specifico semaforo con 'count' risorse.
@@ -54,10 +77,8 @@ void initializeSemaphores(int id, int numOfStudents);
  *        Se è passato SEMAPHORE_STUDENT, ci si aspetta che il campo studentID contenga l'ID dello studente.
  *        Altrimenti, il campo è semplicemente ignorato.
  * @param count Con quante risorse deve essere inizializzato il semaforo.
- * @param studentID Necessario solo se 'which' è SEMAPHORE_STUDENT.
- *                  In questo caso, DEVE essere passato l'ID dello studente.
  */
-void initializeSemaphore(int id, SemaphoreType which, int count, int studentID);
+void initializeSemaphore(int id, SemaphoreType which, int count);
 
 /**
  * @return ID dell'aggregato di semafori legato alla chiave IPC_SIM_KEY
@@ -94,23 +115,13 @@ void reserveStudentSemaphore(int id, int studentID);
  */
 void releaseStudentSemaphore(int id, int studentID);
 
-///**
-// * @brief Questa funzione è bloccante e fa attendere a un processo che un semaforo raggiunga un certo valore value.
-// *        Se which è SEMAPHORE_STUDENT, è necessario passarne l'ID, altrimenti il campo è ignorato.
-// * @param id ID dell'aggregato di semafori
-// * @param which Per quale semaforo attendere
-// * @param value Fino a che valore attendere
-// * @param studentID ID dello studente il cui semaforo deve raggiungere value per sbloccare il processo.
-// */
-//void waitForSemaphore(int id, SemaphoreType which, int value, int studentID);
-
 /**
  * @brief Blocca un processo e fallo attendere fino a quando un semaforo specificato non è a 0.
  * @param id ID dell'aggregato di semafori
  * @param which Per quale semaforo attendere
  * @param studentID Opzionale //TODO
  */
-void waitForZero(int id, SemaphoreType which, int studentID);
+void waitForZero(int id, SemaphoreType which);
 
 /**
  * @brief Cancella l'aggregato di semafori.

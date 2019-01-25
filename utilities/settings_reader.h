@@ -5,7 +5,6 @@
 
 #define MAX_LEN 128
 #define NOF_SETTINGS 8
-#define MAX_PREFERENCES 16
 
 //#define S_R_DEBUG
 

@@ -1,5 +1,41 @@
 #include "ipc_utils.h"
 
+int createMessageQueue() {
+    int id = msgget(IPC_SIM_KEY, IPC_CREAT | IPC_EXCL | 0660);
+
+    PRINT_IF_ERRNO_EXIT(-1)
+
+#ifdef  IPC_MSG_DEBUG
+    printf("[MESSAGGI] %d: Creata coda di messaggi %d con chiave %d\n", getpid(), id, IPC_SIM_KEY);
+#endif
+
+    return id;
+}
+
+int getMessageQueue(int key) {
+    int id = msgget(IPC_SIM_KEY, 0660);
+
+    PRINT_IF_ERRNO_EXIT(-1)
+
+#ifdef  IPC_MSG_DEBUG
+    printf("[MESSAGGI] %d: Recuperata coda di messaggi %d con chiave %d\n", getpid(), id, IPC_SIM_KEY);
+#endif
+
+    return id;
+}
+
+void destroyMessageQueue(int id) {
+    int result = msgctl(id, IPC_RMID, NULL);
+
+    if (result == 0) {
+#ifdef IPC_MSG_DEBUG
+        printf("[MESSAGGI] %d: Coda di messaggi %d distrutta con successo.\n", getpid(), id);
+#endif
+    } else {
+        PRINT_ERRNO_EXIT(-1)
+    }
+}
+
 /**********************************************************************************************************************/
 
 int createSemaphores(int count) {
@@ -14,7 +50,7 @@ int createSemaphores(int count) {
     return id;
 }
 
-void initializeSemaphore(int id, SemaphoreType which, int count, int studentID) {
+void initializeSemaphore(int id, SemaphoreType which, int count) {
     switch (which) {
 
         case SEMAPHORE_EVERYONE_READY: {
@@ -26,7 +62,19 @@ void initializeSemaphore(int id, SemaphoreType which, int count, int studentID) 
             break;
         }
         case SEMAPHORE_EVERYONE_ENDED: {
-            PRINT_ERRNO_EXIT(-1)
+            semctl(id, SEMAPHORE_EVERYONE_ENDED_ID, SETVAL, count);
+            PRINT_IF_ERRNO_EXIT(-1)
+#ifdef IPC_SEM_DEBUG
+            printf("[SEMAFORI]: Semaforo EVERYONE_ENDED inizializzato a valore %d\n", count);
+#endif
+            break;
+        }
+        case SEMAPHORE_MARKS_AVAILABLE: {
+            semctl(id, SEMAPHORE_MARKS_AVAILABLE_ID, SETVAL, count);
+            PRINT_IF_ERRNO_EXIT(-1)
+#ifdef IPC_SEM_DEBUG
+            printf("[SEMAFORI]: Semaforo MARKS_AVAILABLE inizializzato a valore %d\n", count);
+#endif
             break;
         }
         case SEMAPHORE_CAN_PRINT: {
@@ -37,9 +85,8 @@ void initializeSemaphore(int id, SemaphoreType which, int count, int studentID) 
 #endif
             break;
         }
-
         case SEMAPHORE_STUDENT: {
-            PRINT_ERRNO_EXIT(-1)
+            PRINT_ERROR_EXIT("[SEMAFORI]: Tentata inizializzazione di un semaforo studente.", -1)
             break;
         }
 
@@ -47,9 +94,14 @@ void initializeSemaphore(int id, SemaphoreType which, int count, int studentID) 
     }
 }
 
+void initializeStudentSemaphore(int id, int studentID) {
+    //todo
+}
+
 void destroySemaphores(int id) {
     semctl(id, 0, IPC_RMID);
     if (errno) {
+        PRINT_ERRNO
         PRINT_ERROR("!!! [SEMAFORI] !!! : Distruzione del vettore di semafori fallita.\n")
         errno = 0;
     } else {
@@ -59,7 +111,7 @@ void destroySemaphores(int id) {
     }
 }
 
-void waitForZero(int id, SemaphoreType which, int studentID) {
+void waitForZero(int id, SemaphoreType which) {
     struct sembuf myOp;
     int semaphoreID = -1;
     switch (which) {
@@ -70,6 +122,10 @@ void waitForZero(int id, SemaphoreType which, int studentID) {
         }
         case SEMAPHORE_EVERYONE_ENDED: {
             semaphoreID = SEMAPHORE_EVERYONE_ENDED_ID;
+            break;
+        }
+        case SEMAPHORE_MARKS_AVAILABLE: {
+            semaphoreID = SEMAPHORE_MARKS_AVAILABLE_ID;
             break;
         }
         default: PRINT_ERRNO_EXIT(-1)
@@ -98,6 +154,7 @@ int getSemaphoresID() {
     return id;
 }
 
+
 void reserveSemaphore(int id, SemaphoreType which) {
     struct sembuf myOp;
     int semaphoreID = -1;
@@ -108,12 +165,19 @@ void reserveSemaphore(int id, SemaphoreType which) {
             break;
         }
         case SEMAPHORE_EVERYONE_ENDED: {
-            PRINT_ERRNO_EXIT(-1)
+            semaphoreID = SEMAPHORE_EVERYONE_ENDED_ID;
             break;
         }
-
+        case SEMAPHORE_MARKS_AVAILABLE: {
+            semaphoreID = SEMAPHORE_MARKS_AVAILABLE_ID;
+            break;
+        }
         case SEMAPHORE_CAN_PRINT: {
             semaphoreID = SEMAPHORE_CAN_PRINT_ID;
+            break;
+        }
+        case SEMAPHORE_STUDENT: {
+            PRINT_ERRNO_EXIT(-1) //todo
             break;
         }
         default: PRINT_ERRNO_EXIT(-1)
@@ -134,14 +198,25 @@ void reserveSemaphore(int id, SemaphoreType which) {
 #endif
 }
 
-
 void releaseSemaphore(int id, SemaphoreType which) {
     struct sembuf myOp;
     int semaphoreID = -1;
     switch (which) {
+        /*
+         * Non implementiamo gli altri semafori perchè non ha senso permettere di rilasciarli (sono inoltre usa e getta)
+         */
         case SEMAPHORE_CAN_PRINT: {
             semaphoreID = SEMAPHORE_CAN_PRINT_ID;
             break;
+        }
+        case SEMAPHORE_STUDENT: {
+            PRINT_ERRNO_EXIT(-1)// todo
+            break;
+        }
+        case SEMAPHORE_EVERYONE_READY:
+        case SEMAPHORE_EVERYONE_ENDED:
+        case SEMAPHORE_MARKS_AVAILABLE: {
+            PRINT_ERROR_EXIT("Tentato rilascio di un semaforo illegale.", -1)
         }
         default: PRINT_ERRNO_EXIT(-1)
     }
@@ -216,10 +291,3 @@ void destroySharedMemory(int id) {
     printf("[MEMORIA CONDIVISA] %d: Zona associata alla chiave %d distrutta\n", getpid(), IPC_SIM_KEY);
 #endif
 }
-
-
-
-
-
-
-
