@@ -7,7 +7,10 @@ StudentData *this;
 SettingsData *settings;
 
 void simulationEnd(int sigid);
+
 void simulationAlmostEnded(int sigid);
+
+void abortSimulation(int sigid);
 
 int main(int argc, char *argv[]) {
     semaphoresID = getSemaphoresID();
@@ -33,10 +36,10 @@ int main(int argc, char *argv[]) {
     signal(SIGALRM, simulationAlmostEnded);
 
 //    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
-    printf("[%d]: Sono lo studente %d\n", getpid(), myID);
-    printf("[%d]Il mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", getpid(), this->voto_AdE,
+    printf("[%d]\n\tSono lo studente %d\n", getpid(), myID);
+    printf("\tIl mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", this->voto_AdE,
            this->nofElemsPref);
-    printf("[%d]Tutto qui.\n\n", getpid());
+    printf("\tTutto qui.\n\n");
     releaseSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
     reserveSemaphore(semaphoresID, SEMAPHORE_EVERYONE_READY);
@@ -55,8 +58,8 @@ int main(int argc, char *argv[]) {
     return 1;
 }
 
-void simulationAlmostEnded(int sigid){
-    printf("[%d-%d]: Manca poco, meglio chiudere il gruppo.\n", getpid(), myID);
+void simulationAlmostEnded(int sigid) {
+    printf("[%d-%d] Manca poco, meglio chiudere il gruppo.\n", getpid(), myID);
 
     //todo chiudere effettivamente il gruppo con una zona critica.
     this->groupClosed = true;
@@ -64,7 +67,7 @@ void simulationAlmostEnded(int sigid){
 }
 
 void simulationEnd(int sigid) {
-    printf("[%d-%d]: Ricevuto segnale di termine simulazione.\n", getpid(), myID);
+    printf("[%d-%d] Ricevuto segnale di termine simulazione.\n", getpid(), myID);
 
     /*
      * Attendiamo a questo punto che tutti gli studenti terminino la simulazione

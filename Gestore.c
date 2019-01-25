@@ -9,10 +9,6 @@ int semid, shmid, msgid;
 SettingsData *settings;
 SimulationData *simulationData;
 
-void raiseSignalToStudents(int sigid);
-
-void calculateStudentsMarks();
-
 int main(int argc, char *argv[]) {
 //    struct msqid_ds mqs;
     int childrenPID, childrenStatus;
@@ -21,9 +17,9 @@ int main(int argc, char *argv[]) {
     settings = readConfiguration(argc, argv);
 
     /* Inizializziamo i segnali. Se per caso uno di questi è attivato, la simulazione deve interrompersi. */
-    signal(SIGINT, terminateSimulationOnSignal);
-    signal(SIGTERM, terminateSimulationOnSignal);
-    signal(SIGCHLD, terminateSimulationOnSignal);
+    signal(SIGINT, abortSimulationOnSignal);
+    signal(SIGTERM, abortSimulationOnSignal);
+    signal(SIGCHLD, abortSimulationOnSignal);
 
     /* Stampiamo le impostazioni che abbiamo letto dal file di configurazione */
     printFoundSettings(settings);
@@ -63,19 +59,23 @@ int main(int argc, char *argv[]) {
     printf("[GESTORE] Genero i processi figlio\n");
     instantiateChildren();
 
-    signal(SIGCHLD, SIG_IGN);
-
     /* Attendiamo che siano tutti pronti. */
     waitForZero(semid, SEMAPHORE_EVERYONE_READY);
 
-    printf("\n\n#!#!#! Inizia la simulazione. Durera' %d secondi. !#!#!#\n\n", settings->sim_duration);
-    printf("[GESTORE] Da questo momento andrò in sleep.\n");
+    printf("\n\n"
+           "####################################### GESTORE #######################################\n"
+           "#####  Inizia la simulazione. Durera' %d secondi. Da questo momento sono in sleep  #####\n"
+           "#######################################################################################\n"
+           "\n", settings->sim_duration);
 
     /* Mandiamo in sleep il gestore. Se questa linea è rimossa, l'intera simulazione non può aver luogo. */
     sleep((unsigned int) settings->sim_duration);
 
 
-    printf("\n\n#!#!#! [GESTORE] Tempo scaduto; la simulazione termina. Invio segnale di terminazione... !#!#!#\n\n");
+    printf("\n\n"
+           "################################### GESTORE ####################################\n"
+           "####  Tempo scaduto; la simulazione termina. Invio segnale di terminazione  ####\n"
+           "################################################################################\n\n");
 
     /* SIGUSR1 è utilizzato per indicare ai processi figli la fine della simulazione, così da uscire dal while(true) */
     raiseSignalToStudents(SIGUSR1);
@@ -98,49 +98,23 @@ int main(int argc, char *argv[]) {
     printf("[GESTORE] Voti pronti, avviso gli studenti!\n");
     reserveSemaphore(semid, SEMAPHORE_MARKS_AVAILABLE);
 
-    // todo attendiamo con una wait che tutti i processi finiscano di stampare. da questo momento il programma termina.
+    signal(SIGTERM, blockSignal);//todo usare una maschera...
+    signal(SIGINT, blockSignal); //todo usare una maschera...
 
-    while (childrenCounter > 0) {
-        childrenPID = wait(&childrenStatus);
-        switch (errno) {
-            /* Errno con errore ECHILD sta a indicare che non ha processi figli il padre. */
-            case ECHILD: {
-                //todo sistemare questo problema
-                PRINT_ERRNO
-                childrenCounter = 0;
-                errno = 0;
-                break;
-            }
-            case 0: {
-                printf("[GESTORE] Terminato processo %d con stato %d. Ne mancano %d\n", childrenPID, childrenStatus,
-                       childrenCounter);
-                childrenCounter--;
-                break;
-            }
-                /* Se avviene questo errore, la wait è stata interrotta da un segnale. Riproviamo la wait in questo caso. */
-            case EINTR: {
-                PRINT_ERRNO
-                errno = 0;
-                break;
-            }
-            case EINVAL: {
-                /* Non dovrebbe capitare; non stiamo utilizzando delle opzioni strane. */
-                PRINT_ERRNO_EXIT(-1)
-                break;
-            }
-            default: {
-                /* Se siamo qui qualcosa di grave è successo. */
-                PRINT_ERRNO_EXIT(-1)
-            }
-        }
-    }
+    /* Attendiamo con una wait che tutti i processi finiscano di stampare. da questo momento il programma termina. */
+    waitForZombieChildren();
 
-    printf("\n\n#!#!#! Tutti gli studenti hanno terminato l'esecuzione. !#!#!#\n"
-           "Ecco i risultati: \n");
+    printf("\n\n"
+           "######################### GESTORE #########################\n"
+           "####  Tutti gli studenti hanno terminato l'esecuzione  ####\n"
+           "###########################################################\n\n");
+
+
+    printf("Ecco i risultati: \n");
 
     //todo stampare i risultati richiesti dal pdf del progetto.
 
-    free(settings);
+    freeAllocatedMemory();
 
     closeIPC();
 
@@ -194,9 +168,14 @@ void closeIPC() {
     destroySharedMemory(shmid);
 }
 
-void terminateSimulationOnSignal(int sigid) {
+void blockSignal(int sigid) {
+    signal(sigid, blockSignal);
+}
+
+void abortSimulationOnSignal(int sigid) {
     /*Variabile statica usata per evitare di eseguire più di una volta la terminazione del programma in caso di errore*/
     static bool terminating = false;
+    int i;
 
     if (!terminating) {
         terminating = true;
@@ -204,10 +183,9 @@ void terminateSimulationOnSignal(int sigid) {
         return;
     }
 
-    int i, childrenReturnStatus, childrenPid;
+    printf("\n\n#!#!#! [GESTORE] Ricevuto segnale %d (%s). Termino il programma.\n\n", sigid, strsignal(sigid));
 
-    printf("Iniziata terminazione del programma con segnale %d\n\n", sigid);
-
+    /* Inviamo a tutti i processi il segnale di terminazione. */
     for (i = 0; i < childrenCounter; i++) {
         kill(childrenPIDs[i], SIGTERM);
         if (errno) {
@@ -216,46 +194,55 @@ void terminateSimulationOnSignal(int sigid) {
         }
     }
 
-    while (childrenCounter > 0) {
-        childrenPid = wait(&childrenReturnStatus);
-        printf("[!] %d Terminato con successo il PID %d con stato %d\n", childrenCounter, childrenPid,
-               childrenReturnStatus);
-        childrenCounter--;
-    }
+    waitForZombieChildren();
+
+    freeAllocatedMemory();
 
     closeIPC();
 
-    exit(1);
+    exit(sigid);
 }
 
-int terminateZombieChildrens(bool block) {
-    int childrenReturnStatus, childrenPid;
-    int options = 0;
-    int caughtZombiesCount = 0;
+void freeAllocatedMemory() {
+    free(settings);
+}
 
-    /* Se non vogliamo che non sia bloccante, impostiamo la flag apposita. */
-    if (!block) {
-        options |= WNOHANG;
-    }
+void waitForZombieChildren() {
+    int childrenStatus, childrenPID;
 
-    do {
-        /*
-         * Con -1 facciamo aspettare qualsiasi processo figlio.
-         * Continuiamo a farlo fino a quando waitpid non ritorna 0, il che significa che esistono processi figli ma
-         * nessuno è ancora zombie.
-         */
-        childrenPid = waitpid(-1, &childrenReturnStatus, options);
-        if (childrenPid > 0) {
-            printf("[!] Terminato con successo il processo zombie %d con stato %d\n", childrenPid,
-                   childrenReturnStatus);
-            caughtZombiesCount++;
-        } else if (childrenPid < 0) {
-            PRINT_ERRNO
-            errno = 0;
+    while (childrenCounter > 0) {
+        childrenPID = wait(&childrenStatus);
+        switch (errno) {
+            /* Errno con errore ECHILD sta a indicare che non ha processi figli il padre. */
+            case ECHILD: {
+                printf("\n[GESTORE] Finiti i processi Zombie, termino.\n");
+                childrenCounter = 0;
+                errno = 0;
+                break;
+            }
+            case 0: {
+                childrenCounter--;
+                printf("#!#!#! [GESTORE] Terminato processo %d con stato %d. Ne mancano %d\n", childrenPID,
+                       childrenStatus, childrenCounter);
+                break;
+            }
+                /* Se avviene questo errore, la wait è stata interrotta da un segnale. Riproviamo la wait in questo caso. */
+            case EINTR: {
+                PRINT_ERRNO
+                errno = 0;
+                break;
+            }
+            case EINVAL: {
+                /* Non dovrebbe capitare; non stiamo utilizzando delle opzioni strane. */
+                PRINT_ERRNO_EXIT(-1)
+                break;
+            }
+            default: {
+                /* Se siamo qui qualcosa di grave è successo. */
+                PRINT_ERRNO_EXIT(-1)
+            }
         }
-    } while (childrenPid > 0);
-
-    return caughtZombiesCount;
+    }
 }
 
 void instantiateChildren() {
@@ -278,7 +265,7 @@ void instantiateChildren() {
                 //todo manage new children
                 simulationData->students[childrenCounter].voto_AdE = getRandomRange(settings->AdE_min,
                                                                                     settings->AdE_max);
-                printf("Inizializzato processo con PID %d. Il suo voto è %d.\n\n",
+                printf("[GESTORE] Inizializzato processo con PID %d. Il suo voto è %d.\n\n",
                        childrenPIDs[childrenCounter],
                        simulationData->students[childrenCounter].voto_AdE);
 
@@ -294,7 +281,7 @@ void instantiateChildren() {
 void printFoundSettings(SettingsData *settings) {
     int i;
 
-    printf("Trovate le impostazioni:\n"
+    printf("[GESTORE] Trovate le impostazioni:\n"
            "\t- pop_size = %d\n"
            "\t- sim_duration = %d\n"
            "\t- AdE_min = %d\n"

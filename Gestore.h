@@ -18,10 +18,20 @@
 
 void printFoundSettings(SettingsData *settings);
 
-void terminateSimulationOnSignal(int sigid);
+void abortSimulationOnSignal(int sigid);
+
+void raiseSignalToStudents(int sigid);
 
 void instantiateChildren();
 
+void calculateStudentsMarks();
+
+void waitForZombieChildren();
+
+void freeAllocatedMemory();
+
 void closeIPC();
+
+void blockSignal(int sigid);
 
 #endif
