@@ -45,7 +45,7 @@
  * Questo valore indica la base con la quale iniziano i semafori dei singoli studenti. Servono per evitare che gli altri
  * studenti possano interagire con uno studente che potrebbe cambiare stato (e quindi entrare in un gruppo o chiuderlo)
  */
-#define SEMAPHORE_STUDENT_BASE_ID 4
+#define SEMAPHORE_STUDENT_BASE_ID GLOBAL_SEMAPHORE_COUNT
 
 int createMessageQueue();
 
@@ -131,14 +131,36 @@ void destroySemaphores(int id);
 
 /**********************************************************************************************************************/
 
+/**
+ * @brief Richiede l'allocazione al SO di una zona di memoria collegata ad IPC_SEM_KEY di dimensione size byte.
+ * @param size Quanti byte allocare
+ * @return L'ID della zona di memoria
+ */
 int createSharedMemory(size_t size);
 
+/**
+ * @brief Restituisce l'ID di una zona di memoria già allocata e collegata ad IPC_SEM_KEY
+ * @return L'ID della zona di memoria
+ */
 int getSharedMemoryID();
 
+/**
+ * @brief Crea un puntatore per collegare un processo alla memoria condivisa.
+ * @param id L'ID della zona di memoria condivisa
+ * @return Puntatore alla zona di memoria condivisa
+ */
 SimulationData *attachSharedMemory(int id);
 
+/**
+ * @brief Scollega la memoria condivisa dal processo
+ * @param addr Il puntatore da scollegare
+ */
 void detachSharedMemory(void *addr);
 
+/**
+ * @brief Fa distruggere al SO la zona di memoria condivisa collegata all'ID id
+ * @param id ID della zona di memoria condivisa da distruggere.
+ */
 void destroySharedMemory(int id);
 
 #endif

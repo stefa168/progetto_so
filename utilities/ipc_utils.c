@@ -95,14 +95,22 @@ void initializeSemaphore(int id, SemaphoreType which, int count) {
 }
 
 void initializeStudentSemaphore(int id, int studentID) {
-    //todo
+    semctl(id, SEMAPHORE_STUDENT_BASE_ID + studentID, 1);
+    PRINT_IF_ERRNO_EXIT(-1)
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI]: Semaforo STUDENTE %d inizializzato.\n", studentID);
+#endif
 }
 
 void destroySemaphores(int id) {
     semctl(id, 0, IPC_RMID);
     if (errno) {
-        PRINT_ERRNO
-        PRINT_ERROR("!!! [SEMAFORI] !!! : Distruzione del vettore di semafori fallita.\n")
+        if (errno == EIDRM) {
+            printf("[SEMAFORI] Nessun semaforo da rimuovere.\n");
+        } else {
+            PRINT_ERRNO
+            PRINT_ERROR("!!! [SEMAFORI] !!! : Distruzione del vettore di semafori fallita.\n")
+        }
         errno = 0;
     } else {
 #ifdef IPC_SEM_DEBUG
@@ -177,8 +185,8 @@ void reserveSemaphore(int id, SemaphoreType which) {
             break;
         }
         case SEMAPHORE_STUDENT: {
-            PRINT_ERRNO_EXIT(-1) //todo
-            break;
+            PRINT_ERROR_EXIT(
+                    "Tentata riserva di un semaforo studente con metodo errato. Usare reserveStudentSemaphore", -1);
         }
         default: PRINT_ERRNO_EXIT(-1)
     }
@@ -210,9 +218,10 @@ void releaseSemaphore(int id, SemaphoreType which) {
             break;
         }
         case SEMAPHORE_STUDENT: {
-            PRINT_ERRNO_EXIT(-1)// todo
-            break;
+            PRINT_ERROR_EXIT(
+                    "Tentato rilascio di un semaforo studente con metodo errato. Usare releaseStudentSemaphore", -1)
         }
+
         case SEMAPHORE_EVERYONE_READY:
         case SEMAPHORE_EVERYONE_ENDED:
         case SEMAPHORE_MARKS_AVAILABLE: {
@@ -233,6 +242,43 @@ void releaseSemaphore(int id, SemaphoreType which) {
     PRINT_IF_ERRNO_EXIT(-1)
 #ifdef IPC_SEM_DEBUG
     printf("[SEMAFORI] %d: Rilascio del semaforo %d riuscito\n", getpid(), semaphoreID);
+#endif
+}
+
+void reserveStudentSemaphore(int id, int studentID) {
+    struct sembuf myOp;
+
+    myOp.sem_num = (unsigned short) (SEMAPHORE_STUDENT_BASE_ID + studentID);
+    myOp.sem_op = -1;
+    myOp.sem_flg = 0;
+
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI] %d: Tentativo di riserva del semaforo studente %d\n", getpid(), studentID);
+#endif
+
+    semop(id, &myOp, 1);
+
+    PRINT_IF_ERRNO_EXIT(-1)
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI] %d: Riserva del semaforo studente %d riuscita\n", getpid(), studentID);
+#endif
+}
+
+void releaseStudentSemapore(int id, int studentID) {
+    struct sembuf myOp;
+
+    myOp.sem_num = (unsigned short) (SEMAPHORE_STUDENT_BASE_ID + studentID);
+    myOp.sem_num = +1;
+    myOp.sem_flg = 0;
+
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI] %d: Tentativo di rilascio del semaforo studente %d\n", getpid(), studentID);
+#endif
+    semop(id, &myOp, 1);
+
+    PRINT_IF_ERRNO_EXIT(-1)
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI] %d: Rilascio del semaforo studente %d riuscito\n", getpid(), studentID);
 #endif
 }
 

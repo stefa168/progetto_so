@@ -25,8 +25,6 @@ int main(int argc, char *argv[]) {
     /* Recuperiamo anche le impostazioni */
     settings = &simulationData->settings;
 
-//    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
-
     /* Inizializziamo lo studente */
     initializeStudent();
 
@@ -35,6 +33,7 @@ int main(int argc, char *argv[]) {
     signal(SIGUSR1, simulationEnd);
     signal(SIGALRM, simulationAlmostEnded);
 
+    /* Zona critica necessaria per informare che lo studente è partito correttamente. */
     reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
     printf("[%d]\n\tSono lo studente %d\n", getpid(), myID);
     printf("\tIl mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", this->voto_AdE,
@@ -42,6 +41,7 @@ int main(int argc, char *argv[]) {
     printf("\tTutto qui.\n\n");
     releaseSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
+    /* Attendiamo che tutti siano pronti prima di partire con la simulazione! */
     reserveSemaphore(semaphoresID, SEMAPHORE_EVERYONE_READY);
     waitForZero(semaphoresID, SEMAPHORE_EVERYONE_READY);
 
@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
         // todo simulazione dello studente
     }
 
+    /* Se siamo qui vuol dire che qualcosa di grave è capitato. Dobbiamo terminare. */
     return 1;
 }
 
