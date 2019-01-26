@@ -96,8 +96,7 @@ void stopAcceptingInvites() {
      * Nel caso in cui utilizziamo getMessage in modalità bloccante, ritornerà sempre true dopo aver ricevuto un messaggio
      * per cui rimarrà qui fino alla fine della simulazione.
      */
-    while (true) {
-        getMessage(messageQueueID, &message, myID, true);
+    while (getMessage(messageQueueID, &message, myID, true)) {
         switch (message.type) {
 
             case INVITE: {
@@ -284,11 +283,16 @@ bool getMessage(int msgqid, SimMessage *msgPointer, int msgType, bool hasToWaitF
     msgrcv(msgqid, msgPointer, sizeof(SimMessage) - sizeof(long), msgType, flags);
 
 
+    /*
+     * Se errno è ENOMSG, vuol dire che non ci sono messaggi in coda e noi abbiamo cercato di ricevere un messaggio
+     * senza attesa
+     */
     if (errno == ENOMSG) {
+        /* Linea commentata perchè avviene troppo spesso*/
 //            printf("[%d-%d] Nessun messaggio da ricevere\n", getpid(), myID);
         errno = 0;
         return false;
-    } else if (errno == EINTR) {
+    } else if (errno == EINTR) { /* Improbabile che finiamo qui; probabilmente veniamo interrotti perchè a fine sim. */
         printf("[%d-%d] Attesa ricezione messaggio interrotta\n", getpid(), myID);
         errno = 0;
         return false;
