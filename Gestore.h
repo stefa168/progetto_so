@@ -26,12 +26,14 @@ void instantiateChildren();
 
 void calculateStudentsMarks();
 
+void calculatePadding(int valueToPrint, int maxSize, int *leftPadding, int *rightPadding);
+
+void printSimulationResults();
+
 void waitForZombieChildren();
 
 void freeAllocatedMemory();
 
 void closeIPC();
-
-void blockSignal(int sigid);
 
 #endif

@@ -9,10 +9,10 @@ int semid, shmid, msgid;
 SettingsData *settings;
 SimulationData *simulationData;
 
-int main(int argc, char *argv[]) {
-//    struct msqid_ds mqs;
-    int childrenPID, childrenStatus;
+int *ade_marks, *so_marks;
+float ade_mean = 0, so_mean = 0;
 
+int main(int argc, char *argv[]) {
     /* Leggiamo le impostazioni */
     settings = readConfiguration(argc, argv);
 
@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
     waitForZero(semid, SEMAPHORE_EVERYONE_READY);
 
     printf("\n\n"
-           "####################################### GESTORE #######################################\n"
-           "#####  Inizia la simulazione. Durera' %d secondi. Da questo momento sono in sleep  #####\n"
-           "#######################################################################################\n"
-           "\n", settings->sim_duration);
+           "############################# GESTORE #############################\n"
+           "#####  Inizia la simulazione. Da questo momento sono in sleep #####\n"
+           "###################################################################\n"
+           "\t\tDurata prevista: %d secondi.\n\n", settings->sim_duration);
 
     /* Mandiamo in sleep il gestore. Se questa linea è rimossa, l'intera simulazione non può aver luogo. */
     sleep((unsigned int) settings->sim_duration);
@@ -98,9 +98,6 @@ int main(int argc, char *argv[]) {
     printf("[GESTORE] Voti pronti, avviso gli studenti!\n");
     reserveSemaphore(semid, SEMAPHORE_MARKS_AVAILABLE);
 
-    signal(SIGTERM, blockSignal);//todo usare una maschera...
-    signal(SIGINT, blockSignal); //todo usare una maschera...
-
     /* Attendiamo con una wait che tutti i processi finiscano di stampare. da questo momento il programma termina. */
     waitForZombieChildren();
 
@@ -112,7 +109,8 @@ int main(int argc, char *argv[]) {
 
     printf("Ecco i risultati: \n");
 
-    //todo stampare i risultati richiesti dal pdf del progetto.
+
+    printSimulationResults();
 
     freeAllocatedMemory();
 
@@ -122,6 +120,8 @@ int main(int argc, char *argv[]) {
 }
 
 void calculateStudentsMarks() {
+    so_marks = calloc((size_t) settings->AdE_max + 1, sizeof(int));
+
     StudentData *currentStudent;
     StudentData *groupOwner;
     int i, mark;
@@ -140,10 +140,72 @@ void calculateStudentsMarks() {
             } else {
                 printf("[CALCOLO VOTI] Lo studente %d prende il voto %d, senza penalità.\n", i, mark);
             }
+
+            so_marks[mark]++;
         }
 
+        printf("\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]);
+
         currentStudent->voto_SO = mark;
+        so_mean += mark;
     }
+
+    so_mean /= settings->pop_size;
+}
+
+void calculatePadding(int valueToPrint, int maxSize, int *leftPadding, int *rightPadding) {
+    char numString[17] = {0};
+    int stringLength;
+
+    sprintf(numString, "%d", valueToPrint);
+    stringLength = strlen(numString);
+
+    *leftPadding = (maxSize - stringLength) / 2;
+    *rightPadding = maxSize - *leftPadding - stringLength;
+}
+
+void printSimulationResults() {
+    int i;
+    int leftPadding[3] = {0}, rightPadding[3] = {0};
+
+    printf("\n"
+           "╔══════════╦════════╦══════════╦════════╗\n"
+           "║ VOTO ADE ║ NUMERO ║ VOTO  SO ║ NUMERO ║\n"
+           "╠══════════╬════════╬══════════╬════════╣\n");
+
+    for (i = 0; i < settings->AdE_min; i++) {
+        calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
+        calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
+
+
+        printf("║          ║        ║%*c%d%*c║%*c%d%*c║\n"
+               "╠══════════╬════════╬══════════╬════════╣\n",
+               leftPadding[0], ' ', i, rightPadding[0], ' ',
+               leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
+    }
+
+    for (; i <= settings->AdE_max; i++) {
+        calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
+        calculatePadding(ade_marks[i - settings->AdE_min], 8, &leftPadding[1], &rightPadding[1]);
+        calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
+
+
+        printf("║%*c%d%*c║%*c%d%*c║%*c%d%*c║%*c%d%*c║\n",
+               leftPadding[0], ' ', i, rightPadding[0], ' ',
+               leftPadding[1], ' ', ade_marks[i], rightPadding[1], ' ',
+               leftPadding[0], ' ', i, rightPadding[0], ' ',
+               leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
+
+        if (i == settings->AdE_max) {
+            printf("╚══════════╩════════╩══════════╩════════╝\n\n");
+        } else {
+            printf("╠══════════╬════════╬══════════╬════════╣\n");
+        }
+    }
+
+    printf(" ─ La media dei voti di Architettura degli Elaboratori e' %.2f;\n"
+           " ─ La media dei voti del Laboratorio di Sistemi Operativi e' %.2f;\n"
+           " ─ /\\ = %.2f\n\n", ade_mean, so_mean, so_mean - ade_mean);
 }
 
 void raiseSignalToStudents(int sigid) {
@@ -168,12 +230,8 @@ void closeIPC() {
     destroySharedMemory(shmid);
 }
 
-void blockSignal(int sigid) {
-    signal(sigid, blockSignal);
-}
-
 void abortSimulationOnSignal(int sigid) {
-    /*Variabile statica usata per evitare di eseguire più di una volta la terminazione del programma in caso di errore*/
+    /* Variabile statica usata per evitare di eseguire più di una volta la terminazione del programma */
     static bool terminating = false;
     int i;
 
@@ -206,6 +264,8 @@ void abortSimulationOnSignal(int sigid) {
 void freeAllocatedMemory() {
     free(settings);
     free(childrenPIDs);
+    free(ade_marks);
+    free(so_marks);
 }
 
 void waitForZombieChildren() {
@@ -247,7 +307,12 @@ void waitForZombieChildren() {
 }
 
 void instantiateChildren() {
+    /* Allochiamo spazio per settings->AdE_max - settings->AdE_min + 1 contatori per i voti degli studenti. */
     char childrenIDString[16] = {0};
+    int currentStudentAdEMark = 0;
+
+    ade_marks = calloc((size_t) settings->AdE_max - settings->AdE_min + 1, sizeof(int));
+
     for (childrenCounter = 0; childrenCounter < settings->pop_size; childrenCounter++) {
         switch (childrenPIDs[childrenCounter] = fork()) {
             case -1: {
@@ -264,17 +329,25 @@ void instantiateChildren() {
             }
             default: {
                 //todo manage new children
-                simulationData->students[childrenCounter].voto_AdE = getRandomRange(settings->AdE_min,
-                                                                                    settings->AdE_max);
-                printf("[GESTORE] Inizializzato processo con PID %d. Il suo voto è %d.\n\n",
-                       childrenPIDs[childrenCounter],
-                       simulationData->students[childrenCounter].voto_AdE);
+                currentStudentAdEMark = getRandomRange(settings->AdE_min, settings->AdE_max);
 
+                /* Incrementiamo il contatore del voto che ha ottenuto lo studente. */
+                ade_marks[currentStudentAdEMark - settings->AdE_min]++;
+
+                simulationData->students[childrenCounter].voto_AdE = currentStudentAdEMark;
+
+                printf("[GESTORE] Inizializzato processo con PID %d. Il suo voto è %d. Altri %d studenti hanno lo stesso voto.\n\n",
+                       childrenPIDs[childrenCounter], currentStudentAdEMark,
+                       ade_marks[currentStudentAdEMark - settings->AdE_min]);
+
+                ade_mean += currentStudentAdEMark;
 
                 break;
             }
         }
     }
+
+    ade_mean /= settings->pop_size;
 }
 
 #ifdef DEBUG_GESTORE
