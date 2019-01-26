@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
     /* Mandiamo in sleep il gestore. Se questa linea è rimossa, l'intera simulazione non può aver luogo. */
     sleep((unsigned int) settings->sim_duration);
 
-
     printf("\n\n"
            "################################### GESTORE ####################################\n"
            "####  Tempo scaduto; la simulazione termina. Invio segnale di terminazione  ####\n"
@@ -79,7 +78,6 @@ int main(int argc, char *argv[]) {
 
     /* SIGUSR1 è utilizzato per indicare ai processi figli la fine della simulazione, così da uscire dal while(true) */
     raiseSignalToStudents(SIGUSR1);
-
 
     printf("[GESTORE] Attendo che tutti i processi figli terminino la simulazione...\n");
 
@@ -95,7 +93,7 @@ int main(int argc, char *argv[]) {
     /* Calcoliamo i voti degli studenti. */
     calculateStudentsMarks();
 
-    printf("[GESTORE] Voti pronti, avviso gli studenti!\n");
+    printf("\n[GESTORE] Voti pronti, avviso gli studenti!\n");
     reserveSemaphore(semid, SEMAPHORE_MARKS_AVAILABLE);
 
     /* Attendiamo con una wait che tutti i processi finiscano di stampare. da questo momento il programma termina. */
@@ -108,7 +106,6 @@ int main(int argc, char *argv[]) {
 
 
     printf("Ecco i risultati: \n");
-
 
     printSimulationResults();
 

@@ -267,6 +267,9 @@ void reserveStudentSemaphore(int id, int studentID) {
 
     semop(id, &myOp, 1);
 
+    if(errno == ENOMSG)
+        errno = 0;
+
     PRINT_IF_ERRNO_EXIT(-1)
 #ifdef IPC_SEM_DEBUG
     printf("[SEMAFORI] %d: Riserva del semaforo studente %d riuscita\n", getpid(), studentID);
@@ -277,13 +280,16 @@ void releaseStudentSemaphore(int id, int studentID) {
     struct sembuf myOp;
 
     myOp.sem_num = (unsigned short) (SEMAPHORE_STUDENT_BASE_ID + studentID);
-    myOp.sem_num = +1;
+    myOp.sem_op = +1;
     myOp.sem_flg = 0;
 
 #ifdef IPC_SEM_DEBUG
     printf("[SEMAFORI] %d: Tentativo di rilascio del semaforo studente %d\n", getpid(), studentID);
 #endif
     semop(id, &myOp, 1);
+
+    if(errno == ENOMSG)
+        errno = 0;
 
     PRINT_IF_ERRNO_EXIT(-1)
 #ifdef IPC_SEM_DEBUG

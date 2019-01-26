@@ -47,9 +47,9 @@ int main(int argc, char *argv[]) {
     alarm(settings->sim_duration - 1);
 
     while (true) {
-        /*if (checkForMessages(false)) {
+        if (checkForMessages(false)) {
             stopAcceptingInvites();
-        }*/
+        }
 
 //        if(!trySendingInvites()) {
 //            checkForMessages(true);
@@ -96,7 +96,8 @@ void stopAcceptingInvites() {
      * Nel caso in cui utilizziamo getMessage in modalità bloccante, ritornerà sempre true dopo aver ricevuto un messaggio
      * per cui rimarrà qui fino alla fine della simulazione.
      */
-    while (getMessage(messageQueueID, &message, myID, true)) {
+    while (true) {
+        getMessage(messageQueueID, &message, myID, true);
         switch (message.type) {
 
             case INVITE: {
@@ -240,9 +241,9 @@ void simulationAlmostEnded(int sigid) {
            getpid(), myID, getStatusString(), getGroupParticipantCount(), this->nofElemsPref);
 //    releaseSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
-//    reserveStudentSemaphore(semaphoresID, myID);
+    reserveStudentSemaphore(semaphoresID, myID);
     closeMyGroup();
-//    releaseStudentSemaphore(semaphoresID, myID);
+    releaseStudentSemaphore(semaphoresID, myID);
 
     stopAcceptingInvites();
 }
@@ -255,6 +256,8 @@ void simulationEnd(int sigid) {
      */
     reserveSemaphore(semaphoresID, SEMAPHORE_EVERYONE_ENDED);
     waitForZero(semaphoresID, SEMAPHORE_EVERYONE_ENDED);
+
+
 
     /*
      * A questo punto la simulazione è terminata. Manca solo che il gestore calcoli i voti.
@@ -280,18 +283,17 @@ bool getMessage(int msgqid, SimMessage *msgPointer, int msgType, bool hasToWaitF
 
     msgrcv(msgqid, msgPointer, sizeof(SimMessage) - sizeof(long), msgType, flags);
 
-    if (errno) {
-        if (errno == ENOMSG) {
-            printf("[%d-%d] Nessun messaggio da ricevere\n", getpid(), myID);
-            errno = 0;
-            return false;
-        } else if(errno == EINTR) {
-            printf("[%d-%d] Attesa ricezione messaggio interrotta\n", getpid(), myID);
-            errno = 0;
-            return false;
-        } else {
-            PRINT_IF_ERRNO_EXIT(-1)
-        }
+
+    if (errno == ENOMSG) {
+//            printf("[%d-%d] Nessun messaggio da ricevere\n", getpid(), myID);
+        errno = 0;
+        return false;
+    } else if (errno == EINTR) {
+        printf("[%d-%d] Attesa ricezione messaggio interrotta\n", getpid(), myID);
+        errno = 0;
+        return false;
+    } else if (errno) {
+        PRINT_IF_ERRNO_EXIT(-1)
     }
 
     PRINT_IF_ERRNO_EXIT(-1)
@@ -319,7 +321,7 @@ bool sendMessage(int msgqid, int toStudentID, MessageType type, bool mustSend) {
             printf("[%d-%d] Non abbastanza spazio per inviare il messaggio.\n", getpid(), myID);
             errno = 0;
             return false;
-        } else if(errno == EINTR) {
+        } else if (errno == EINTR) {
             printf("[%d-%d] Attesa invio messaggio interrotta\n", getpid(), myID);
             errno = 0;
             return false;
