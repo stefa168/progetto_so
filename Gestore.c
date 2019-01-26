@@ -127,8 +127,8 @@ void calculateStudentsMarks() {
         currentStudent = &simulationData->students[i];
         groupOwner = &simulationData->students[currentStudent->groupOwnerID];
         if (groupOwner->groupClosed) {
-            /* Il voto massimo è tenuto aggiornato solo dal capogruppo. */
-            mark = groupOwner->voto_AdE;
+            /* Il voto massimo è tenuto aggiornato solo dal capogruppo che punta allo studente con il voto ade più alto. */
+            mark = simulationData->students[groupOwner->bestMarkID].voto_AdE;
             /* Applichiamo la penalità se lo studente fa parte di un gruppo il cui numero è != dalla sua preferenza */
             if (groupOwner->studentsCount != currentStudent->nofElemsPref) {
                 printf("\n[CALCOLO VOTI] Lo studente %d prenderebbe il voto %d, ma ha una preferenza diversa (%d nel gruppo invece di %d)\n",

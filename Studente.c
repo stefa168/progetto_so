@@ -51,9 +51,9 @@ int main(int argc, char *argv[]) {
             stopAcceptingInvites();
         }
 
-//        if(!trySendingInvites()) {
-//            checkForMessages(true);
-//        }
+        if (!trySendingInvites()) {
+            checkForMessages(true);
+        }
     }
 
     /* Se siamo qui vuol dire che qualcosa di grave è capitato. Dobbiamo terminare. */
@@ -338,4 +338,128 @@ bool sendMessage(int msgqid, int toStudentID, MessageType type, bool mustSend) {
 
     return true;
 
+}
+
+int invitesAvailable() {
+    return settings->nof_invites - this->invitesSent;
+}
+
+bool hasToInviteMoreStudents() {
+    if (this->status == AVAILABLE || (amIOwner() && !this->groupClosed)) {
+        return this->voto_AdE >= MIN_GRADE &&
+               this->invitesSent < settings->nof_invites &&
+               this->studentsCount + this->invitesPending < this->nofElemsPref;
+    } else {
+        return false;
+    }
+}
+
+bool shouldInviteStudent(int id, int iterations) {
+    StudentData *candidate = &simulationData->students[id];
+    int penalty = 0;
+    int bestGroupMark = simulationData->students[this->bestMarkID].voto_AdE;
+
+    if (this->nofElemsPref != candidate->nofElemsPref) {
+        penalty = GROUP_PENALTY;
+    }
+
+    if (penalty > 0 && iterations <= MAXIMUM_ITERATIONS / 2) {
+        return false;
+    } else if (iterations == MAXIMUM_ITERATIONS - 1) {
+        /*
+         * Altrimenti, se siamo all'ultima iterazione vuol dire che abbiamo problemi di invito, quindi probabilmente
+         * ci conviene invitare comunque
+         */
+    } else {
+        /* Questo è il caso più particolare:
+         * Potrebbe esserci la penalità, ma solo se abbiamo superato un minimo di tentativi.
+         * dobbiamo
+         */
+        if (bestGroupMark < candidate->voto_AdE) {
+            bestGroupMark = candidate->voto_AdE;
+        }
+
+        /* Supponiamo che:
+         *  - bestGroupMark = 27
+         *  - settings->AdE_max = 30
+         *  - settings->AdE_min = 18
+         *  - candidate->voto_AdE = 27
+         *
+         *  Allora, |48 - 27 - 27| = 6.
+         *
+         *  Se invece candidate->voto_AdE = 18
+         *  |48 - 27 - 18| = 3.
+         *
+         *  Questa logica permette di spingere gli studenti con voti molto diversi a invitarsi,
+         *  in modo da incrementare la media finale.
+         *  Lo studente diventa meno rigido nella scelta più sono i tentativi effettuati per cercare un membro.
+         */
+        // todo verificare se è meglio penalizzare o no per la differenza di preferenza. Probabile penalizzare. (+)
+        return abs(settings->AdE_max + settings->AdE_min - bestGroupMark - candidate->voto_AdE) - penalty <=
+               2 * iterations;
+    }
+
+}
+
+int lookForStudentToInvite() {
+    int iterations, i, j;
+
+    for (iterations = 0; iterations < MAXIMUM_ITERATIONS; iterations++) {
+        for (i = myID, j = 0; j < settings->pop_size; i++, j++, i %= settings->pop_size) {
+            /*
+             * Dobbiamo essere sicuri di non cercare di invitare noi stessi o qualcuno dell'altro turno, che chi stiamo
+             * cercando di invitare sia disponibile per l'invito e non stia attendendo di poter creare un gruppo e che
+             * convenga invitare la persona in funzione di quanto incrementeremo la media finale.
+             */
+            if (i != myID && i % 2 == myID % 2 &&
+                simulationData->students[i].status == AVAILABLE && simulationData->students[i].invitesPending == 0 &&
+                shouldInviteStudent(i, iterations)) {
+                /*
+                 * Blocchiamo il cambiamento di stato dello studente in modo da evitare che qualche altro processo
+                 * cerchi di invitare il nostro potenziale membro di gruppo e che non cambi lo stato interno dello s.
+                 */
+                reserveStudentSemaphore(semaphoresID, i);
+
+                /*
+                 * Verifichiamo di nuovo che il suo stato non sia cambiato, altrimenti non possiamo invitarlo!
+                 * Se non è cambiato nulla, invitiamolo.
+                 */
+                if (simulationData->students[i].status == AVAILABLE &&
+                    simulationData->students[i].invitesPending == 0) {
+                    return i;
+                } else {
+                    releaseStudentSemaphore(semaphoresID, i);
+                }
+
+            }
+        }
+    }
+
+    /* Non abbiamo trovato nessun candidato. */
+    return -1;
+}
+
+/**
+ * @brief Questa funzione cerca uno studente a cui inviare un invito.
+ * @return Restituisce true se è riuscita ad inviare un invito ad uno studente, false altrimenti.
+ */
+bool trySendingInvites() {
+    int foundStudentID;
+    bool sentInvite = false;
+
+    if (!hasToInviteMoreStudents()) {
+        printf("[%d-%d] Non ho più bisogno di invitare. Gruppo: %d studenti di %d (%d in attesa di conferma). Ho consumato %d inviti.\n",
+               getpid(), myID, getGroupParticipantCount(), this->nofElemsPref, this->invitesPending,
+               invitesAvailable());
+    } else {
+        foundStudentID = lookForStudentToInvite();
+        if (foundStudentID != -1) {
+            sentInvite = sendInvite(foundStudentID);
+            releaseStudentSemaphore(semaphoresID, foundStudentID);
+            return sentInvite;
+        } else {
+            printf("[%d,%d] Non sono piu' disponibili studenti da invitare...\n", getpid(), myID);
+            return false;
+        }
+    }
 }

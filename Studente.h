@@ -19,6 +19,9 @@
  */
 #define PREFERENCE_LOGIC 1
 
+#define MIN_GRADE 18
+#define MAXIMUM_ITERATIONS 5
+
 void initializeStudent();
 
 bool amIOwner();
@@ -36,6 +39,8 @@ void abortSimulation(int sigid);
 void stopAcceptingInvites();
 
 bool checkForMessages(bool hasToWait);
+
+bool trySendingInvites();
 
 bool amInGroup();
 
