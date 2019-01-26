@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
 
     msgid = createMessageQueue();
 
-    printf("[GESTORE] Genero i processi figlio\n");
+    printf("[GESTORE] Genero i processi figlio. Io sono il processo %d\n", getpid());
     instantiateChildren();
 
     /* Attendiamo che siano tutti pronti. */
@@ -134,11 +134,11 @@ void calculateStudentsMarks() {
             mark = groupOwner->voto_AdE;
             /* Applichiamo la penalità se lo studente fa parte di un gruppo il cui numero è != dalla sua preferenza */
             if (groupOwner->studentsCount != currentStudent->nofElemsPref) {
-                printf("[CALCOLO VOTI] Lo studente %d prenderebbe il voto %d, ma ha una preferenza diversa (%d nel gruppo invece di %d)\n",
+                printf("\n[CALCOLO VOTI] Lo studente %d prenderebbe il voto %d, ma ha una preferenza diversa (%d nel gruppo invece di %d)\n",
                        i, mark, groupOwner->studentsCount, currentStudent->nofElemsPref);
                 mark -= GROUP_PENALTY;
             } else {
-                printf("[CALCOLO VOTI] Lo studente %d prende il voto %d, senza penalità.\n", i, mark);
+                printf("\n[CALCOLO VOTI] Lo studente %d prende il voto %d, senza penalità.\n", i, mark);
             }
 
             so_marks[mark]++;
@@ -211,7 +211,7 @@ void printSimulationResults() {
 void raiseSignalToStudents(int sigid) {
     int i;
     for (i = 0; i < settings->pop_size; i++) {
-        printf("Invio segnale %s al processo con PID %d\n", strsignal(sigid), childrenPIDs[i]);
+        printf("[GESTORE] Invio segnale %s al processo con PID %d\n", strsignal(sigid), childrenPIDs[i]);
         kill(childrenPIDs[i], sigid);
         if (errno) {
             PRINT_ERRNO
@@ -244,13 +244,14 @@ void abortSimulationOnSignal(int sigid) {
     printf("\n\n#!#!#! [GESTORE] Ricevuto segnale %d (%s). Termino il programma.\n\n", sigid, strsignal(sigid));
 
     /* Inviamo a tutti i processi il segnale di terminazione. */
-    for (i = 0; i < childrenCounter; i++) {
+    /*for (i = 0; i < childrenCounter; i++) {
         kill(childrenPIDs[i], SIGTERM);
         if (errno) {
             PRINT_ERRNO
             errno = 0;
         }
-    }
+    }*/
+    raiseSignalToStudents(SIGTERM);
 
     waitForZombieChildren();
 

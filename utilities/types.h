@@ -52,6 +52,12 @@ typedef struct {
     int preferencePercentages[MAX_PREFERENCES];
 } SettingsData;
 
+typedef enum {
+    AVAILABLE,
+    IN_GROUP,
+    WAITING_CONFIRM
+} StudentStatus;
+
 typedef struct {
     int groupOwnerID;
     int bestMarkID;
@@ -59,6 +65,7 @@ typedef struct {
     int voto_AdE;
     int voto_SO;
     int nofElemsPref;
+    StudentStatus status;
     bool groupClosed;
 } StudentData;
 

@@ -21,4 +21,34 @@
 
 void initializeStudent();
 
+bool amIOwner();
+
+bool getMessage(int msgqid, SimMessage *msgPointer, int msgType, bool hasToWaitForMessage);
+
+bool sendMessage(int msgqid, int toStudentID, MessageType type, bool mustSend);
+
+void simulationEnd(int sigid);
+
+void simulationAlmostEnded(int sigid);
+
+void abortSimulation(int sigid);
+
+void stopAcceptingInvites();
+
+bool checkForMessages(bool hasToWait);
+
+bool amInGroup();
+
+bool wantToCloseGroup();
+
+int getGroupParticipantCount();
+
+void acknowledgeInvite(int fromID);
+
+void acknowledgeInviteAccepted(int fromID);
+
+void acknowledgeInviteRejected(int fromID);
+
+void stopAcceptingInvites();
+
 #endif

@@ -12,7 +12,7 @@ int createMessageQueue() {
     return id;
 }
 
-int getMessageQueue(int key) {
+int getMessageQueue() {
     int id = msgget(IPC_SIM_KEY, 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
@@ -95,7 +95,10 @@ void initializeSemaphore(int id, SemaphoreType which, int count) {
 }
 
 void initializeStudentSemaphore(int id, int studentID) {
-    semctl(id, SEMAPHORE_STUDENT_BASE_ID + studentID, 1);
+    printf("[SEMAFORI %d-%d] Tentativo di inizializzare il semaforo studente #%d\n", getpid(), studentID,
+           SEMAPHORE_STUDENT_BASE_ID + studentID);
+
+    semctl(id, SEMAPHORE_STUDENT_BASE_ID + studentID, SETVAL, 1);
     PRINT_IF_ERRNO_EXIT(-1)
 #ifdef IPC_SEM_DEBUG
     printf("[SEMAFORI]: Semaforo STUDENTE %d inizializzato.\n", studentID);
@@ -122,6 +125,7 @@ void destroySemaphores(int id) {
 void waitForZero(int id, SemaphoreType which) {
     struct sembuf myOp;
     int semaphoreID = -1;
+
     switch (which) {
 
         case SEMAPHORE_EVERYONE_READY: {
@@ -159,6 +163,10 @@ void waitForZero(int id, SemaphoreType which) {
 int getSemaphoresID() {
     int id = semget(IPC_SIM_KEY, 0, 0666);
     PRINT_IF_ERRNO_EXIT(-1)
+
+#ifdef IPC_SEM_DEBUG
+    printf("[SEMAFORI]: Ottenuto il vettore di semafori con id %d\n", id);
+#endif
     return id;
 }
 
@@ -196,7 +204,8 @@ void reserveSemaphore(int id, SemaphoreType which) {
     myOp.sem_flg = 0;
 
 #ifdef IPC_SEM_DEBUG
-    printf("[SEMAFORI] %d: Tentativo di riserva del semaforo %d\n", getpid(), semaphoreID);
+    printf("[SEMAFORI] %d: Tentativo di riserva del semaforo %d con valore attuale %d e %d processi in attesa.\n",
+           getpid(), semaphoreID, semctl(id, semaphoreID, GETVAL), semctl(id, semaphoreID, GETNCNT));
 #endif
     semop(id, &myOp, 1);
 
@@ -264,7 +273,7 @@ void reserveStudentSemaphore(int id, int studentID) {
 #endif
 }
 
-void releaseStudentSemapore(int id, int studentID) {
+void releaseStudentSemaphore(int id, int studentID) {
     struct sembuf myOp;
 
     myOp.sem_num = (unsigned short) (SEMAPHORE_STUDENT_BASE_ID + studentID);

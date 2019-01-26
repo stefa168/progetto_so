@@ -3,7 +3,7 @@
 
 //#define IPC_MEM_DEBUG
 //#define IPC_SEM_DEBUG
-#define IPC_MSG_DEBUG
+//#define IPC_MSG_DEBUG
 
 #include <sys/types.h>
 #include <sys/sem.h>
@@ -45,11 +45,11 @@
  * Questo valore indica la base con la quale iniziano i semafori dei singoli studenti. Servono per evitare che gli altri
  * studenti possano interagire con uno studente che potrebbe cambiare stato (e quindi entrare in un gruppo o chiuderlo)
  */
-#define SEMAPHORE_STUDENT_BASE_ID GLOBAL_SEMAPHORE_COUNT
+#define SEMAPHORE_STUDENT_BASE_ID 4
 
 int createMessageQueue();
 
-int getMessageQueue(int key);
+int getMessageQueue();
 
 void destroyMessageQueue(int id);
 
