@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     /* Recuperiamo anche le impostazioni */
     settings = &simulationData->settings;
 
-    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
+//    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
     /* Inizializziamo lo studente */
     initializeStudent();
@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     signal(SIGUSR1, simulationEnd);
     signal(SIGALRM, simulationAlmostEnded);
 
-//    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
+    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
     printf("[%d]\n\tSono lo studente %d\n", getpid(), myID);
     printf("\tIl mio voto di ARCH e' %d e preferisco stare con %d studenti in gruppo.\n", this->voto_AdE,
            this->nofElemsPref);

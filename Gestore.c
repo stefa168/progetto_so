@@ -144,7 +144,7 @@ void calculateStudentsMarks() {
             so_marks[mark]++;
         }
 
-        printf("\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]);
+        printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]);
 
         currentStudent->voto_SO = mark;
         so_mean += mark;
@@ -192,7 +192,7 @@ void printSimulationResults() {
 
         printf("║%*c%d%*c║%*c%d%*c║%*c%d%*c║%*c%d%*c║\n",
                leftPadding[0], ' ', i, rightPadding[0], ' ',
-               leftPadding[1], ' ', ade_marks[i], rightPadding[1], ' ',
+               leftPadding[1], ' ', ade_marks[i - settings->AdE_min], rightPadding[1], ' ',
                leftPadding[0], ' ', i, rightPadding[0], ' ',
                leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
 
