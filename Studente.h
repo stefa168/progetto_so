@@ -19,8 +19,8 @@
  */
 #define PREFERENCE_LOGIC 1
 
-#define MIN_GRADE 18
-#define MAXIMUM_ITERATIONS 5
+#define MIN_GRADE 21
+#define MAXIMUM_ITERATIONS 8
 
 void initializeStudent();
 
@@ -56,6 +56,8 @@ bool sendInvite(int toStudentID);
 
 int getGroupParticipantCount();
 
+int getGroupBestID(int studentID);
+
 bool acknowledgeInvite(int fromID);
 
 void acknowledgeInviteAccepted(int fromID);
@@ -71,5 +73,13 @@ void acknowledgeAnswer(int fromID);
 const char *getStatusString();
 
 void freeMemory();
+
+void beginCriticalSection(int studentID);
+
+void endCriticalSection(int studentID);
+
+void blockSignal(int sigid);
+
+void unblockSignal(int sigid);
 
 #endif

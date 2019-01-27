@@ -55,7 +55,8 @@ typedef struct {
 typedef enum {
     AVAILABLE,
     IN_GROUP,
-    WAITING_CONFIRM
+    WAITING_CONFIRM,
+    GROUP_OWNER
 } StudentStatus;
 
 typedef struct {
@@ -67,7 +68,7 @@ typedef struct {
     int nofElemsPref;
     int invitesSent;
     int invitesPending;
-    int invitesRejected;
+    int rejectsAvailable;
     StudentStatus status;
     bool groupClosed;
 } StudentData;

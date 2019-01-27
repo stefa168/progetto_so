@@ -124,6 +124,7 @@ void calculateStudentsMarks() {
     int i, mark;
 
     for (i = 0, mark = 0; i < settings->pop_size; i++) {
+        mark = 0;
         currentStudent = &simulationData->students[i];
         groupOwner = &simulationData->students[currentStudent->groupOwnerID];
         if (groupOwner->groupClosed) {
@@ -138,10 +139,14 @@ void calculateStudentsMarks() {
                 printf("\n[CALCOLO VOTI] Lo studente %d prende il voto %d, senza penalità.\n", i, mark);
             }
 
-            so_marks[mark]++;
+        } else {
+            printf("[CALCOLO VOTI] Il capogruppo %d non ha chiuso il gruppo, per cui %d prende 0.\n",
+                   currentStudent->groupOwnerID, i);
         }
 
-        printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]);
+        so_marks[mark]++;
+
+        printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]-1);
 
         currentStudent->voto_SO = mark;
         so_mean += mark;
