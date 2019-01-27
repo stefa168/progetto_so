@@ -67,6 +67,7 @@ typedef struct {
     int nofElemsPref;
     int invitesSent;
     int invitesPending;
+    int invitesRejected;
     StudentStatus status;
     bool groupClosed;
 } StudentData;

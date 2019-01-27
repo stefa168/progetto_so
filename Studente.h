@@ -26,6 +26,12 @@ void initializeStudent();
 
 bool amIOwner();
 
+bool amInGroup();
+
+bool wantToCloseGroup();
+
+bool hasAlreadyInvited(int studentID);
+
 bool getMessage(int msgqid, SimMessage *msgPointer, int msgType, bool hasToWaitForMessage);
 
 bool sendMessage(int msgqid, int toStudentID, MessageType type, bool mustSend);
@@ -42,18 +48,28 @@ bool checkForMessages(bool hasToWait);
 
 bool trySendingInvites();
 
-bool amInGroup();
+void addPendingInvite(int studentID);
 
-bool wantToCloseGroup();
+void removePendingInvite(int studentID);
+
+bool sendInvite(int toStudentID);
 
 int getGroupParticipantCount();
 
-void acknowledgeInvite(int fromID);
+bool acknowledgeInvite(int fromID);
 
 void acknowledgeInviteAccepted(int fromID);
 
+bool acceptInvite(int fromID);
+
+bool rejectInvite(int fromID);
+
 void acknowledgeInviteRejected(int fromID);
 
-void stopAcceptingInvites();
+void acknowledgeAnswer(int fromID);
+
+const char *getStatusString();
+
+void freeMemory();
 
 #endif
