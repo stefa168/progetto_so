@@ -255,7 +255,7 @@ bool checkForMessages(bool hasToWait) {
 
             case INVITE: {
                 if (acknowledgeInvite(message.from)) {
-                    canStopChecking = true; //todo vedere se comprimere ad una sola riga
+                    canStopChecking = true;
                 }
                 printf("[%d-%d] Ho ricevuto un invito da %d. %s.\n", getpid(), myID, message.from,
                        canStopChecking ? "Accettato" : "Rifiutato");
@@ -573,7 +573,6 @@ bool shouldInviteStudent(int id, int iterations) {
          *  in modo da incrementare la media finale.
          *  Lo studente diventa meno rigido nella scelta più sono i tentativi effettuati per cercare un membro.
          */
-        // todo verificare se è meglio penalizzare o no per la differenza di preferenza. Probabile penalizzare. (+)
         return abs(settings->AdE_max + settings->AdE_min - bestGroupMark - candidate->voto_AdE) + penalty <=
                2 * iterations;
     }

@@ -47,10 +47,22 @@
  */
 #define SEMAPHORE_STUDENT_BASE_ID 4
 
+/**
+ * @brief Genera coda messaggi
+ * @return ID coda
+ */
 int createMessageQueue();
 
+/**
+ * @brief recupera coda messaggi (usato dagli studenti)
+ * @return ID Coda
+ */
 int getMessageQueue();
 
+/**
+ * @brief Distrugge la coda
+ * @param id ID coda
+ */
 void destroyMessageQueue(int id);
 
 /**********************************************************************************************************************/
@@ -119,7 +131,6 @@ void releaseStudentSemaphore(int id, int studentID);
  * @brief Blocca un processo e fallo attendere fino a quando un semaforo specificato non è a 0.
  * @param id ID dell'aggregato di semafori
  * @param which Per quale semaforo attendere
- * @param studentID Opzionale //TODO
  */
 void waitForZero(int id, SemaphoreType which);
 

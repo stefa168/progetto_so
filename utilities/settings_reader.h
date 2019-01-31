@@ -12,8 +12,6 @@ SettingsData *readConfiguration(int argc, char *argv[]);
 
 void setSettingsValue(SettingsData *data, int index, int value);
 
-int getSettingsValue(SettingsData *data, int index);
-
-bool validateSettings(SettingsData *data); // todo
+void validateSettings(SettingsData *data);
 
 #endif

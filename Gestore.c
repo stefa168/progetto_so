@@ -16,6 +16,8 @@ int main(int argc, char *argv[]) {
     /* Leggiamo le impostazioni */
     settings = readConfiguration(argc, argv);
 
+    validateSettings(settings);
+
     /* Inizializziamo i segnali. Se per caso uno di questi è attivato, la simulazione deve interrompersi. */
     signal(SIGINT, abortSimulationOnSignal);
     signal(SIGTERM, abortSimulationOnSignal);
@@ -49,7 +51,7 @@ int main(int argc, char *argv[]) {
     /* Inizializziamo semafori e coda di mesaggi. */
     semid = createSemaphores(settings->pop_size);
 
-    initializeSemaphore(semid, SEMAPHORE_EVERYONE_READY, settings->pop_size);
+    initializeSemaphore(semid, SEMAPHORE_EVERYONE_READY, settings->pop_size+1);
     initializeSemaphore(semid, SEMAPHORE_EVERYONE_ENDED, settings->pop_size);
     initializeSemaphore(semid, SEMAPHORE_MARKS_AVAILABLE, 1);
     initializeSemaphore(semid, SEMAPHORE_CAN_PRINT, 1);
@@ -60,6 +62,7 @@ int main(int argc, char *argv[]) {
     instantiateChildren();
 
     /* Attendiamo che siano tutti pronti. */
+    reserveSemaphore(semid, SEMAPHORE_EVERYONE_READY);
     waitForZero(semid, SEMAPHORE_EVERYONE_READY);
 
     printf("\n\n"
@@ -235,7 +238,6 @@ void closeIPC() {
 void abortSimulationOnSignal(int sigid) {
     /* Variabile statica usata per evitare di eseguire più di una volta la terminazione del programma */
     static bool terminating = false;
-    int i;
 
     if (!terminating) {
         terminating = true;
@@ -246,13 +248,6 @@ void abortSimulationOnSignal(int sigid) {
     printf("\n\n#!#!#! [GESTORE] Ricevuto segnale %d (%s). Termino il programma.\n\n", sigid, strsignal(sigid));
 
     /* Inviamo a tutti i processi il segnale di terminazione. */
-    /*for (i = 0; i < childrenCounter; i++) {
-        kill(childrenPIDs[i], SIGTERM);
-        if (errno) {
-            PRINT_ERRNO
-            errno = 0;
-        }
-    }*/
     raiseSignalToStudents(SIGTERM);
 
     waitForZombieChildren();
@@ -319,19 +314,17 @@ void instantiateChildren() {
     for (childrenCounter = 0; childrenCounter < settings->pop_size; childrenCounter++) {
         switch (childrenPIDs[childrenCounter] = fork()) {
             case -1: {
-                // todo killare tutti i figli
+                abortSimulationOnSignal(0);
                 PRINT_ERRNO_EXIT(-1)
             }
 
             case 0: {
-                /* Siamo un figlio, avviamo execv */
+                /* Siamo un figlio, avviamo execl */
                 sprintf(childrenIDString, "%d", childrenCounter);
                 execl(STUDENT_PATH, STUDENT_PATH, childrenIDString);
-                // todo verificare cosa fare se ci sono problemi
                 PRINT_ERRNO_EXIT(-1)
             }
             default: {
-                //todo manage new children
                 currentStudentAdEMark = getRandomRange(settings->AdE_min, settings->AdE_max);
 
                 /* Incrementiamo il contatore del voto che ha ottenuto lo studente. */

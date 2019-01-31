@@ -179,7 +179,6 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     for (i = 0; i < readContentSize; i++) {
                         readContent[i] = 0;
                     }
-//                    explicit_bzero(readContent, readContentSize * sizeof(int)); //todo
                     readContentSize = 0;
                     state = 0;
                 } else {
@@ -244,32 +243,55 @@ void setSettingsValue(SettingsData *data, int index, int value) {
     }
 }
 
-int getSettingsValue(SettingsData *data, int index) {
-    switch (index) {
-        case 0:
-            return data->pop_size;
-        case 1:
-            return data->sim_duration;
-        case 2:
-            return data->AdE_min;
-        case 3:
-            return data->AdE_max;
-        case 4:
-            return data->minGroupPref;
-        case 5:
-            return data->maxGroupPref;
-        case 6:
-            return data->nof_invites;
-        case 7:
-            return data->nof_refuse;
-        default: {
-            if (index > data->settingsCount + data->numOfPreferences - 1) {
-                PRINT_ERROR_EXIT("[Lettore Impostazioni] E: Tentata una lettura a un'indice delle impostazioni errato.",
-                                 -1)
-            } else {
-                return data->preferencePercentages[index - data->settingsCount - 1];
-            }
-        }
+void validateSettings(SettingsData *data) {
+    int i, perc = 0;
+    for (i = 0; i < data->numOfPreferences; i++) {
+        perc += data->preferencePercentages[i];
+    }
 
+    if (perc != 100) {
+        printf("[VERIFICA IMPOSTAZIONI]: La somma delle percentuali supera il 100%%\n");
+        exit(1);
+    }
+
+    if (data->nof_refuse <= 0) {
+        printf("[VERIFICA IMPOSTAZIONI]: Il numero di rifiuti possibili deve essere > 0\n");
+        exit(1);
+    }
+
+    if (data->AdE_min <= 0) {
+        printf("[VERIFICA IMPOSTAZIONI]: Il voto di AdE minimo deve essere > 0\n");
+        exit(1);
+    }
+
+    if (data->AdE_min >= data->AdE_max) {
+        printf("[VERIFICA IMPOSTAZIONI]: Il voto di AdE minimo %s quello massimo\n",
+               data->AdE_min == data->AdE_max ? "e' uguale a" : "e' maggiore di");
+        exit(1);
+    }
+
+    if (data->nof_invites <= 0) {
+        printf("[VERIFICA IMPOSTAZIONI]: Il numero di inviti possibili deve essere > 0\n");
+        exit(1);
+    }
+
+    if (data->pop_size <= 0) {
+        printf("[VERIFICA IMPOSTAZIONI]: Il numero di studenti minimo e' 1\n");
+        exit(1);
+    }
+
+    if (data->sim_duration < 2) {
+        printf("[VERIFICA IMPOSTAZIONI]: La durata minima della simulazione deve essere 2 secondi\n");
+        exit(1);
+    }
+
+    if (data->minGroupPref <= 0) {
+        printf("[VERIFICA IMPOSTAZIONI]: La preferenza minima deve essere 1\n");
+        exit(1);
+    }
+
+    if(data->minGroupPref>data->maxGroupPref) {
+        printf("[VERIFICA IMPOSTAZIONI]: La preferenza minima supera quella massima\n");
+        exit(1);
     }
 }

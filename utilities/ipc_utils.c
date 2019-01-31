@@ -1,6 +1,7 @@
 #include "ipc_utils.h"
 
 int createMessageQueue() {
+    /* 0660 è S_IWURS | S_IRUSR */
     int id = msgget(IPC_SIM_KEY, IPC_CREAT | IPC_EXCL | 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
@@ -39,7 +40,7 @@ void destroyMessageQueue(int id) {
 /**********************************************************************************************************************/
 
 int createSemaphores(int count) {
-    int id = semget(IPC_SIM_KEY, count + GLOBAL_SEMAPHORE_COUNT, IPC_CREAT | IPC_EXCL | 0666);
+    int id = semget(IPC_SIM_KEY, count + GLOBAL_SEMAPHORE_COUNT, IPC_CREAT | IPC_EXCL | 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
 
@@ -161,7 +162,7 @@ void waitForZero(int id, SemaphoreType which) {
 }
 
 int getSemaphoresID() {
-    int id = semget(IPC_SIM_KEY, 0, 0666);
+    int id = semget(IPC_SIM_KEY, 0, 0660);
     PRINT_IF_ERRNO_EXIT(-1)
 
 #ifdef IPC_SEM_DEBUG
@@ -300,7 +301,7 @@ void releaseStudentSemaphore(int id, int studentID) {
 /**********************************************************************************************************************/
 
 int createSharedMemory(int size) {
-    int id = shmget(IPC_SIM_KEY, size, IPC_CREAT | IPC_EXCL | 0666);
+    int id = shmget(IPC_SIM_KEY, size, IPC_CREAT | IPC_EXCL | 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
 
@@ -312,7 +313,7 @@ int createSharedMemory(int size) {
 }
 
 int getSharedMemoryID() {
-    int id = shmget(IPC_SIM_KEY, 0, 0666);
+    int id = shmget(IPC_SIM_KEY, 0, 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
 
@@ -324,7 +325,7 @@ int getSharedMemoryID() {
 }
 
 SimulationData *attachSharedMemory(int id) {
-    SimulationData *addr = shmat(id, NULL, 0666);
+    SimulationData *addr = shmat(id, NULL, 0660);
 
     PRINT_IF_ERRNO_EXIT(-1)
 #ifdef IPC_MEM_DEBUG
@@ -345,7 +346,6 @@ void detachSharedMemory(void *addr) {
 
 void destroySharedMemory(int id) {
     shmctl(id, IPC_RMID, NULL);
-    // todo debug
     PRINT_IF_ERRNO_EXIT(-1)
 
 #ifdef IPC_MEM_DEBUG
