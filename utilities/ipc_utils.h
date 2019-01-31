@@ -136,7 +136,7 @@ void destroySemaphores(int id);
  * @param size Quanti byte allocare
  * @return L'ID della zona di memoria
  */
-int createSharedMemory(size_t size);
+int createSharedMemory(int size);
 
 /**
  * @brief Restituisce l'ID di una zona di memoria già allocata e collegata ad IPC_SEM_KEY

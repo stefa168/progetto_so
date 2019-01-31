@@ -299,7 +299,7 @@ void releaseStudentSemaphore(int id, int studentID) {
 
 /**********************************************************************************************************************/
 
-int createSharedMemory(size_t size) {
+int createSharedMemory(int size) {
     int id = shmget(IPC_SIM_KEY, size, IPC_CREAT | IPC_EXCL | 0666);
 
     PRINT_IF_ERRNO_EXIT(-1)

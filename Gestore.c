@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     initRandom((unsigned int) getpid());
 
     /* Ora che abbiamo le impostazioni, inizializziamo il vettore che contiene i pid dei processi figli */
-    childrenPIDs = calloc((size_t) settings->pop_size, sizeof(int));
+    childrenPIDs = calloc(settings->pop_size, sizeof(int));
 
     /*
      * Inizializziamo la memoria condivisa. La sua dimensione è data da:
@@ -117,13 +117,13 @@ int main(int argc, char *argv[]) {
 }
 
 void calculateStudentsMarks() {
-    so_marks = calloc((size_t) settings->AdE_max + 1, sizeof(int));
+    so_marks = calloc(settings->AdE_max + 1, sizeof(int));
 
     StudentData *currentStudent;
     StudentData *groupOwner;
     int i, mark;
 
-    for (i = 0, mark = 0; i < settings->pop_size; i++) {
+    for (i = 0; i < settings->pop_size; i++) {
         mark = 0;
         currentStudent = &simulationData->students[i];
         groupOwner = &simulationData->students[currentStudent->groupOwnerID];
@@ -146,7 +146,7 @@ void calculateStudentsMarks() {
 
         so_marks[mark]++;
 
-        printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark]-1);
+        printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark] - 1);
 
         currentStudent->voto_SO = mark;
         so_mean += mark;
@@ -314,7 +314,7 @@ void instantiateChildren() {
     char childrenIDString[16] = {0};
     int currentStudentAdEMark = 0;
 
-    ade_marks = calloc((size_t) settings->AdE_max - settings->AdE_min + 1, sizeof(int));
+    ade_marks = calloc(settings->AdE_max - settings->AdE_min + 1, sizeof(int));
 
     for (childrenCounter = 0; childrenCounter < settings->pop_size; childrenCounter++) {
         switch (childrenPIDs[childrenCounter] = fork()) {

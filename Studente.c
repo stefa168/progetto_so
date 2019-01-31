@@ -289,10 +289,10 @@ bool checkForMessages(bool hasToWait) {
 void initializeStudent() {
     int i, minPref, maxPref;
     int numOfPreferences = simulationData->settings.numOfPreferences;
-    int *prefValues = calloc((size_t) numOfPreferences, sizeof(int));
+    int *prefValues = calloc(numOfPreferences, sizeof(int));
     int *myPref = &(this->nofElemsPref);
 
-    studentsAlreadyInvited = calloc((size_t) settings->nof_invites, sizeof(int));
+    studentsAlreadyInvited = calloc(settings->nof_invites, sizeof(int));
     for (i = 0; i < settings->nof_invites; i++) {
         studentsAlreadyInvited[i] = -1;
     }
