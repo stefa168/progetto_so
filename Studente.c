@@ -51,11 +51,19 @@ int main(int argc, char *argv[]) {
      */
     alarm(settings->sim_duration - 1);
 
+    /* Inizia la logica degli studenti durante la simulazione. */
     while (true) {
+        /*
+         * Cerchiamo di ottenere un messaggio per noi. Se ne abbiamo ricevuto uno che conferma che possiamo smettere
+         * di cercare di formare un gruppo, allora andiamo in un'attesa passiva.
+         */
         if (checkForMessages(false)) {
             stopAcceptingInvites();
         }
 
+        /*
+         * Se non riusciamo ad inviare messaggi, blocchiamoci per cercare di ricevere messaggi dalla coda.
+         */
         if (!trySendingInvites()) {
             checkForMessages(true);
         }
@@ -69,10 +77,9 @@ bool amIOwner() {
     return this->status == GROUP_OWNER;
 }
 
-bool amInGroup() {
-    return this->status == IN_GROUP || this->status == GROUP_OWNER;
-}
-
+/*
+ * Uno studente potrebbe voler chiudere il gruppo in certe condizioni. Questo metodo verifica se sono soddisfatte.
+ */
 bool wantToCloseGroup() {
     return amIOwner() &&
            !this->groupClosed &&
@@ -80,6 +87,9 @@ bool wantToCloseGroup() {
            this->invitesPending == 0;
 }
 
+/*
+ * Verifichiamo nel vettore degli inviti se abbiamo già invitato uno studente specifico e siamo in attesa di una risposta.
+ */
 bool hasAlreadyInvited(int studentID) {
     int i;
     for (i = 0; i < settings->nof_invites; i++) {
@@ -95,6 +105,11 @@ int getGroupParticipantCount() {
     return simulationData->students[this->groupOwnerID].studentsCount;
 }
 
+/*
+ * Questo metodo viene lanciato se abbiamo deciso di accettare un invito.
+ * Se ciò avviene, ci mettiamo in uno stato che avvisa tutti gli altri studenti che ormai facciamo parte di un gruppo
+ * e che non dobbiamo essere invitati (per non sprecare inviti e tempo)
+ */
 bool acceptInvite(int fromID) {
     printf("[%d-%d] Accetto un invito di %d, con %d rifiuti disponibili.\n", getpid(), myID, fromID,
            this->rejectsAvailable);
@@ -103,6 +118,9 @@ bool acceptInvite(int fromID) {
     return true;
 }
 
+/*
+ * Rifiutiamo un invito, decrementando il numero di inviti ancora disponibili
+ */
 bool rejectInvite(int fromID) {
     printf("[%d-%d] Rifiuto un invito di %d. %d rifiuti disponibili.\n", getpid(), myID, fromID,
            this->rejectsAvailable - 1);
@@ -111,12 +129,20 @@ bool rejectInvite(int fromID) {
     return false;
 }
 
+/*
+ * Rifiutiamo un invito, ma per motivi che ci permettono di non consumare rifiuti
+ */
 bool genericRejectInvite(int fromID) {
     printf("[%d-%d] Rifiuto un invito da %d. Stato: %s\n", getpid(), myID, fromID, getStatusString());
     sendMessage(messageQueueID, fromID, REJECT_INVITE, true);
     return false;
 }
 
+/*
+ * Confermiamo la ricezione di un invito reagendovi accettandolo o rifiutandolo.
+ * Nel caso in cui non siamo costretti ad accettare o rifiutare un invito, possiamo decidere di accettarlo se il voto
+ * che otterremmo ci potrerebbe ad ottenere un voto che non abbassa la media.
+ */
 bool acknowledgeInvite(int fromID) {
     bool accepted;
     int penalty = 0, possibleMark, groupMark;
@@ -150,6 +176,9 @@ bool acknowledgeInvite(int fromID) {
     }
 }
 
+/*
+ * Confermiamo la ricezione di un'accettazione di un invito che abbiamo inviato.
+ */
 void acknowledgeInviteAccepted(int fromID) {
     StudentData *newMember;
 
@@ -184,6 +213,11 @@ void acknowledgeAnswer(int fromID) {
     removePendingInvite(fromID);
 }
 
+/*
+ * Fermiamo la logica principale dello studente perchè abbiamo deciso di smettere di invitare.
+ * In questo caso, potrebbe capitare che riceviamo degli inviti o messaggi vecchi, per cui dobbiamo rimuoverli per non
+ * riempire la coda di messaggi con messaggi che altrimenti non sarebbero mai letti.
+ */
 void stopAcceptingInvites() {
     SimMessage message;
     printf("[%d-%d] Smetto di interagire, eccetto per rifiutare inviti.\n", getpid(), myID);
@@ -202,7 +236,6 @@ void stopAcceptingInvites() {
             }
             case ACCEPT_INVITE: {
                 printf("[%d-%d] Ho ricevuto un'accettazione inattesa da %d.\n", getpid(), myID, message.from);
-//                acknowledgeInviteAccepted(message.from);
                 break;
             }
             case REJECT_INVITE: {
@@ -217,12 +250,11 @@ void stopAcceptingInvites() {
 void closeMyGroup() {
     /*
      * Chiudiamo il gruppo solo se:
-     *  - siamo da soli e
+     *  - siamo da soli (quindi non sono in un gruppo),
      *  - non stiamo attendendo conferma di inclusione in un gruppo
-     *  - il gruppo non è stato già chiuso.
+     *  - il gruppo non è stato già chiuso da noi stessi (perchè siamo l'owner).
      */
 
-//    if (!(amInGroup()) && this->status != WAITING_CONFIRM && !this->groupClosed) {
     if (this->status != IN_GROUP &&
         this->status != WAITING_CONFIRM &&
         !(amIOwner() && this->groupClosed)) {
@@ -230,6 +262,7 @@ void closeMyGroup() {
                this->nofElemsPref);
         this->groupClosed = true;
     } else {
+        /* Debug per la situazione attuale dello studente */
         printf("[%d-%d] %d, %d\n", getpid(), myID, this->status, !this->groupClosed);
     }
 }
@@ -241,16 +274,14 @@ bool checkForMessages(bool hasToWait) {
 
     /*
      * Cerchiamo di ricevere un messaggio. Il comportamento è il seguente:
-     * Continuiamo a cercare messaggi se il processo deve ancora far parte di un gruppo o il capogruppo non l'ha chiuso
-     * Inoltre, continuiamo solo se dobbiamo gestire un messaggio. Nel caso in cui siamo obbligati ad attendere per un
-     * messaggio, attenderemo solo per il primo, in modo da non rimanere bloccati nel loop nel caso in cui il processo
-     * continui a ricevere messaggi.
+     * Continuiamo a leggere messaggi diretti a noi; dal secondo l'attesa non è più bloccante.
+     * Reagiamo in modo diverso in funzione del tipo di messaggio che abbiamo ricevuto.
+     * E' essenziale, quando interagiamo con il nostro stato, di escludere tutti gli altri studenti dalla lettura o
+     * scrittura del nostro stato, in modo da mantenere consistente tutta l'esecuzione della simulazione.
      */
     while (!canStopChecking && getMessage(messageQueueID, &message, myID, hasToWait && !alreadyReadAMessage)) {
 
-//        reserveStudentSemaphore(semaphoresID, myID);
         beginCriticalSection(myID);
-
         switch (message.type) {
 
             case INVITE: {
@@ -276,7 +307,6 @@ bool checkForMessages(bool hasToWait) {
             canStopChecking = true;
         }
 
-//        releaseStudentSemaphore(semaphoresID, myID);
         endCriticalSection(myID);
         alreadyReadAMessage = true;
 
@@ -286,6 +316,7 @@ bool checkForMessages(bool hasToWait) {
 
 }
 
+/* Metodo che inizializza lo studente prima dell'inizio della simulazione */
 void initializeStudent() {
     int i, minPref, maxPref;
     int numOfPreferences = simulationData->settings.numOfPreferences;
@@ -333,6 +364,7 @@ void initializeStudent() {
     free(prefValues);
 }
 
+/* Utile per il debug. */
 const char *getStatusString() {
     if (amIOwner()) {
         if (this->groupClosed) {
@@ -347,33 +379,20 @@ const char *getStatusString() {
     } else {
         return "DISPONIBILE";
     }
-
-    /*if (amIOwner()) {
-        if (this->groupClosed) {
-            return "OWNER CHIUSO";
-        } else {
-            return "OWNER APERTO";
-        }
-    } else if (amInGroup()) {
-        return "IN GRUPPO";
-    } else if (this->status == WAITING_CONFIRM) {
-        return "IN ATTESA DI CONFERMA";
-    } else {
-        return "DISPONIBILE";
-    }*/
 }
 
+/* Questo metodo è lanciato un secondo prima del termine della simulazione per permettere a tutti gli studenti di
+ * chiudere il gruppo. Questo porta a un miglioramento nella media in quanto, in genere, tutti riescono a chiudere il
+ * gruppo evitando di prendere 0 e abbassare quindi la media.
+ */
 void simulationAlmostEnded(int sigid) {
-//    reserveSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
     printf("[%d-%d] Manca poco. Il mio stato e' %s. Gruppo: %d studenti su %d.\n",
            getpid(), myID, getStatusString(), getGroupParticipantCount(), this->nofElemsPref);
-//    releaseSemaphore(semaphoresID, SEMAPHORE_CAN_PRINT);
 
-//    reserveStudentSemaphore(semaphoresID, myID);
     beginCriticalSection(myID);
     closeMyGroup();
-//    releaseStudentSemaphore(semaphoresID, myID);
     endCriticalSection(myID);
+
     stopAcceptingInvites();
 }
 
@@ -381,6 +400,7 @@ void freeMemory() {
     free(studentsAlreadyInvited);
 }
 
+/* Iniziamo una sezione critica per un certo PID riservando il suo semaforo e evitando che noi veniamo terminati */
 void beginCriticalSection(int studentID) {
     reserveStudentSemaphore(semaphoresID, studentID);
     blockSignal(SIGUSR1);
@@ -393,6 +413,7 @@ void endCriticalSection(int studentID) {
     unblockSignal(SIGALRM);
 }
 
+/* Blocchiamo con una maschera i segnali che non vogliamo ci interrompano inaspettatamente l'esecuzione critica */
 void blockSignal(int sigid) {
     sigset_t sigset;
     sigemptyset(&sigset);
@@ -415,6 +436,7 @@ void unblockSignal(int sigid) {
     PRINT_IF_ERRNO_EXIT(-1)
 }
 
+/* Terminiamo la simulazione. Il metodo è chiamato quando termina in modo normale. */
 void simulationEnd(int sigid) {
     printf("[%d-%d] Ricevuto segnale di fine simulazione.\n", getpid(), myID);
 
@@ -520,10 +542,10 @@ int invitesAvailable() {
     return settings->nof_invites - this->invitesSent > 0;
 }
 
+/* Decidiamo se dobbiamo invitare più studenti nel gruppo. */
 bool hasToInviteMoreStudents() {
     if (this->status == AVAILABLE || (amIOwner() && !this->groupClosed)) {
         return this->voto_AdE >= MIN_GRADE &&
-               //               this->invitesSent < settings->nof_invites &&
                invitesAvailable() &&
                this->studentsCount + this->invitesPending < this->nofElemsPref;
     } else {
@@ -550,9 +572,9 @@ bool shouldInviteStudent(int id, int iterations) {
          */
         return true;
     } else {
-        /* Questo è il caso più particolare:
+        /*
+         * Questo è il caso più particolare:
          * Potrebbe esserci la penalità, ma solo se abbiamo superato un minimo di tentativi.
-         * dobbiamo
          */
         if (bestGroupMark < candidate->voto_AdE) {
             bestGroupMark = candidate->voto_AdE;
@@ -589,10 +611,12 @@ int lookForStudentToInvite() {
     for (iterations = 0; iterations < MAXIMUM_ITERATIONS; iterations++) {
         for (i = myID, j = 0; j < settings->pop_size; i++, j++, i %= settings->pop_size) {
             /*
-             * Dobbiamo essere sicuri di non cercare di invitare noi stessi o qualcuno dell'altro turno, oltre a non
-             * esser stato già invitato da noi! Chi stiamo cercando di invitare deve essere disponibile per l'invito e
-             * non deve star attendendo di poter creare un gruppo e deve convenire invitare la persona in funzione di
-             * quanto incrementeremo la media finale.
+             * Dobbiamo essere sicuri di:
+             *  - Non cercare di invitare noi stessi o qualcuno dell'altro turno;
+             *  - Non esser stato già invitato da noi;
+             *  - Chi stiamo cercando di invitare deve essere disponibile per l'invito;
+             *  - Non deve star attendendo risposte da altri studenti;
+             *  - Deve convenire invitare la persona in funzione di quanto incrementeremo la media finale.
              */
             if (i != myID && i % 2 == myID % 2 && !hasAlreadyInvited(i) &&
                 simulationData->students[i].status == AVAILABLE && simulationData->students[i].invitesPending == 0 &&
@@ -601,7 +625,6 @@ int lookForStudentToInvite() {
                  * Blocchiamo il cambiamento di stato dello studente in modo da evitare che qualche altro processo
                  * cerchi di invitare il nostro potenziale membro di gruppo e che non cambi lo stato interno dello s.
                  */
-//                reserveStudentSemaphore(semaphoresID, i);
                 beginCriticalSection(i);
 
                 /*
@@ -612,7 +635,6 @@ int lookForStudentToInvite() {
                     simulationData->students[i].invitesPending == 0) {
                     return i;
                 } else {
-//                    releaseStudentSemaphore(semaphoresID, i);
                     endCriticalSection(i);
                 }
 
@@ -624,29 +646,23 @@ int lookForStudentToInvite() {
     return -1;
 }
 
-/**
- * @brief Questa funzione cerca uno studente a cui inviare un invito.
- * @return Restituisce true se è riuscita ad inviare un invito ad uno studente, false altrimenti.
+/*
+ * Questa funzione cerca uno studente a cui inviare un invito.
+ * Restituisce true se è riuscita ad inviare un invito ad uno studente, false altrimenti.
  */
 bool trySendingInvites() {
     int foundStudentID;
     bool inviteSent;
 
     if (!hasToInviteMoreStudents()) {
-        /* Commentato perchè avviene troppo spesso */
-        /*printf("[%d-%d] Non ho più bisogno di invitare. Gruppo: %d studenti di %d (%d in attesa di conferma). Ho consumato %d inviti.\n",
-               getpid(), myID, getGroupParticipantCount(), this->nofElemsPref, this->invitesPending,
-               invitesAvailable());*/
         return false;
     } else {
         foundStudentID = lookForStudentToInvite();
         if (foundStudentID != -1) {
             inviteSent = sendInvite(foundStudentID);
-//            releaseStudentSemaphore(semaphoresID, foundStudentID);
             endCriticalSection(foundStudentID);
             return inviteSent;
         } else {
-//            printf("[%d,%d] Non sono piu' disponibili studenti da invitare...\n", getpid(), myID);
             return false;
         }
     }

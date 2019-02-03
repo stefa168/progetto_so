@@ -26,8 +26,6 @@ void initializeStudent();
 
 bool amIOwner();
 
-bool amInGroup();
-
 bool wantToCloseGroup();
 
 bool hasAlreadyInvited(int studentID);

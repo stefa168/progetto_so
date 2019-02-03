@@ -119,9 +119,14 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/*
+ * Questa funzione calcola i voti di SO, scansionando ogni studente, recuperando il punteggio migliore di AdE e
+ * assegnandolo, se necessario aggiungendo la penalità, al campo nella struttura dedicata ai dati degli studenti.
+ */
 void calculateStudentsMarks() {
     so_marks = calloc(settings->AdE_max + 1, sizeof(int));
 
+    /* Aggiunte per comodità; avremmo dovuto scrivere delle linee molto più lunghe senza questi puntatori */
     StudentData *currentStudent;
     StudentData *groupOwner;
     int i, mark;
@@ -130,6 +135,8 @@ void calculateStudentsMarks() {
         mark = 0;
         currentStudent = &simulationData->students[i];
         groupOwner = &simulationData->students[currentStudent->groupOwnerID];
+
+        /* Solo se il capogruppo ha chiuso il gruppo possiamo dare un voto allo studente attualmente considerato. */
         if (groupOwner->groupClosed) {
             /* Il voto massimo è tenuto aggiornato solo dal capogruppo che punta allo studente con il voto ade più alto. */
             mark = simulationData->students[groupOwner->bestMarkID].voto_AdE;
@@ -147,6 +154,7 @@ void calculateStudentsMarks() {
                    currentStudent->groupOwnerID, i);
         }
 
+        /* Incrementiamo il contatore degli studenti che hanno conseguito un certo voto */
         so_marks[mark]++;
 
         printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark] - 1);
@@ -158,6 +166,10 @@ void calculateStudentsMarks() {
     so_mean /= settings->pop_size;
 }
 
+/*
+ * Questa funzione, dato un certo valore, e un numero di caratteri massimo, calcolerà la spaziatura destra e sinistra,
+ * in modo da mantenere centrata (se non si supera maxSize) la scritta del numero.
+ */
 void calculatePadding(int valueToPrint, int maxSize, int *leftPadding, int *rightPadding) {
     char numString[17] = {0};
     int stringLength;
@@ -169,6 +181,7 @@ void calculatePadding(int valueToPrint, int maxSize, int *leftPadding, int *righ
     *rightPadding = maxSize - *leftPadding - stringLength;
 }
 
+/* Stampiamo i risultati della simulazione, con delle tabelle. I voti non ottenibili di AdE non sono stampati. */
 void printSimulationResults() {
     int i;
     int leftPadding[3] = {0}, rightPadding[3] = {0};
@@ -208,9 +221,10 @@ void printSimulationResults() {
         }
     }
 
+    /* 0394 è il simbolo unicode per il delta! */
     printf(" ─ La media dei voti di Architettura degli Elaboratori e' %.2f;\n"
            " ─ La media dei voti del Laboratorio di Sistemi Operativi e' %.2f;\n"
-           " ─ /\\ = %.2f\n\n", ade_mean, so_mean, so_mean - ade_mean);
+           " ─ \u0394 = %.2f\n\n", ade_mean, so_mean, so_mean - ade_mean);
 }
 
 void raiseSignalToStudents(int sigid) {
