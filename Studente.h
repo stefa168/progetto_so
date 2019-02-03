@@ -19,8 +19,9 @@
  */
 #define PREFERENCE_LOGIC 1
 
-#define MIN_GRADE 21
-#define MAXIMUM_ITERATIONS 8
+/* Ottenuti sperimentalmente. */
+#define MIN_GRADE 22
+#define MAXIMUM_ITERATIONS 7
 
 void initializeStudent();
 
