@@ -8,9 +8,6 @@ SettingsData *settings;
 int *studentsAlreadyInvited;
 
 int main(int argc, char *argv[]) {
-    SimMessage message;
-    bool gotMessage;
-
     semaphoresID = getSemaphoresID();
     sharedMemoryID = getSharedMemoryID();
     simulationData = attachSharedMemory(sharedMemoryID);

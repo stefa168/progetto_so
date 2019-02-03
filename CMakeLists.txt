@@ -8,6 +8,6 @@ set(settings_reader utilities/settings_reader.c utilities/settings_reader.h)
 
 add_executable(Test test.c)
 
-add_executable(Gestore Gestore.c Gestore.h ${settings_reader} ${general_imports})
-add_executable(Studente Studente.c Studente.h ${general_imports})
-add_dependencies(Gestore Studente)
+add_executable(Gestore.r Gestore.c Gestore.h ${settings_reader} ${general_imports})
+add_executable(Studente.r Studente.c Studente.h ${general_imports})
+add_dependencies(Gestore.r Studente.r)

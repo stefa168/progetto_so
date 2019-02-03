@@ -1,9 +1,9 @@
 #ifndef PROGETTO_SO_IPC_UTILS_H
 #define PROGETTO_SO_IPC_UTILS_H
 
-//#define IPC_MEM_DEBUG
-//#define IPC_SEM_DEBUG
-//#define IPC_MSG_DEBUG
+/*#define IPC_MEM_DEBUG*/
+/*#define IPC_SEM_DEBUG*/
+/*#define IPC_MSG_DEBUG*/
 
 #include <sys/types.h>
 #include <sys/sem.h>

@@ -14,7 +14,7 @@
 #include "utilities/types.h"
 #include "utilities/utils.h"
 
-#define STUDENT_PATH "Studente"
+#define STUDENT_PATH "Studente.r"
 
 void printFoundSettings(SettingsData *settings);
 
