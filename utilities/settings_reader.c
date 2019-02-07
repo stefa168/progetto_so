@@ -87,7 +87,9 @@ SettingsData *readConfiguration(int argc, char *argv[]) {
                     PRINT_ERRNO_EXIT(-1)
                 }
 
-                write(configFD, defaultSettingsString, strlen(defaultSettingsString));
+                if(write(configFD, defaultSettingsString, strlen(defaultSettingsString))<0){
+                    PRINT_IF_ERRNO_EXIT(-1)
+                }
 
                 errno = 0;
                 break;

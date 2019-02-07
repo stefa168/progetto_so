@@ -1,5 +1,5 @@
-CC = gcc
-CCFLAGS = -O3 -Wall
+CC = cc
+CCFLAGS = -O3 -Wall -pedantic-errors
 COM_DEPENDENCIES = ipc_utils.o settings_reader.o utils.o
 
 # $< = file delle dipendenze che stiamo generando
@@ -20,6 +20,10 @@ clean:
 
 reset:
 	rm -f *.r
+
+resetall:
+	rm -f *.r
+	rm -f opt.conf
 
 ipc:
 	-ipcrm -M 34197
