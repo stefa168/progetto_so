@@ -2,6 +2,7 @@
 #define PROGETTO_SO_SETTINGS_READER_H
 
 #include "types.h"
+#include <sys/stat.h>
 
 #define MAX_LEN 128
 #define NOF_SETTINGS 8
