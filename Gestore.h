@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include "utilities/settings_reader.h"
 #include "utilities/macros.h"
 #include "utilities/ipc_utils.h"

@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -O3 -Wall -std=c90
+CCFLAGS = -O3 -Wall
 COM_DEPENDENCIES = ipc_utils.o settings_reader.o utils.o
 
 %.o: %.c %.h
@@ -16,6 +16,9 @@ clean:
 	rm -f *.o
 
 ipc:
-	ipcrm -M 34197
-	ipcrm -Q 34197
-	ipcrm -S 34197
+	-ipcrm -M 34197
+	-ipcrm -Q 34197
+	-ipcrm -S 34197
+
+run:
+	./Gestore.r
