@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     /* Inizializziamo semafori e coda di mesaggi. */
     semid = createSemaphores(settings->pop_size);
 
-    initializeSemaphore(semid, SEMAPHORE_EVERYONE_READY, settings->pop_size+1);
+    initializeSemaphore(semid, SEMAPHORE_EVERYONE_READY, settings->pop_size + 1);
     initializeSemaphore(semid, SEMAPHORE_EVERYONE_ENDED, settings->pop_size);
     initializeSemaphore(semid, SEMAPHORE_MARKS_AVAILABLE, 1);
     initializeSemaphore(semid, SEMAPHORE_CAN_PRINT, 1);
@@ -192,32 +192,38 @@ void printSimulationResults() {
            "╠══════════╬════════╬══════════╬════════╣\n");
 
     for (i = 0; i < settings->AdE_min; i++) {
-        calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
-        calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
+        if (so_marks[i] != 0) {
 
 
-        printf("║          ║        ║%*c%d%*c║%*c%d%*c║\n"
-               "╠══════════╬════════╬══════════╬════════╣\n",
-               leftPadding[0], ' ', i, rightPadding[0], ' ',
-               leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
+            calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
+            calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
+
+
+            printf("║          ║        ║%*c%d%*c║%*c%d%*c║\n"
+                   "╠══════════╬════════╬══════════╬════════╣\n",
+                   leftPadding[0], ' ', i, rightPadding[0], ' ',
+                   leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
+        }
     }
 
     for (; i <= settings->AdE_max; i++) {
-        calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
-        calculatePadding(ade_marks[i - settings->AdE_min], 8, &leftPadding[1], &rightPadding[1]);
-        calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
+        if (so_marks[i] != 0 || ade_marks[i - settings->AdE_min] != 0) {
+            calculatePadding(i, 10, &leftPadding[0], &rightPadding[0]);
+            calculatePadding(ade_marks[i - settings->AdE_min], 8, &leftPadding[1], &rightPadding[1]);
+            calculatePadding(so_marks[i], 8, &leftPadding[2], &rightPadding[2]);
 
 
-        printf("║%*c%d%*c║%*c%d%*c║%*c%d%*c║%*c%d%*c║\n",
-               leftPadding[0], ' ', i, rightPadding[0], ' ',
-               leftPadding[1], ' ', ade_marks[i - settings->AdE_min], rightPadding[1], ' ',
-               leftPadding[0], ' ', i, rightPadding[0], ' ',
-               leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
+            printf("║%*c%d%*c║%*c%d%*c║%*c%d%*c║%*c%d%*c║\n",
+                   leftPadding[0], ' ', i, rightPadding[0], ' ',
+                   leftPadding[1], ' ', ade_marks[i - settings->AdE_min], rightPadding[1], ' ',
+                   leftPadding[0], ' ', i, rightPadding[0], ' ',
+                   leftPadding[2], ' ', so_marks[i], rightPadding[2], ' ');
 
-        if (i == settings->AdE_max) {
-            printf("╚══════════╩════════╩══════════╩════════╝\n\n");
-        } else {
-            printf("╠══════════╬════════╬══════════╬════════╣\n");
+            if (i == settings->AdE_max) {
+                printf("╚══════════╩════════╩══════════╩════════╝\n\n");
+            } else {
+                printf("╠══════════╬════════╬══════════╬════════╣\n");
+            }
         }
     }
 
