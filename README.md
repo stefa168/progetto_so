@@ -27,3 +27,4 @@ Le funzionalità di base e la conseguente relazione del progetto sono descritte 
 
 - Il progetto è stato sviluppato con C90 dato che C89 non è supportato da CMake.
 - Non verrà dato alcun genere di supporto in caso di richiesta.
+- Non saranno accettate pull request.
