@@ -17,7 +17,7 @@
 
 #define STUDENT_PATH "Studente.r"
 
-void printFoundSettings(SettingsData *settings);
+void printFoundSettings(SettingsData *foundSettings);
 
 void abortSimulationOnSignal(int sigid);
 

@@ -160,10 +160,10 @@ void calculateStudentsMarks() {
         printf("\t\t\t\tAltri %d studenti hanno preso lo stesso voto.\n", so_marks[mark] - 1);
 
         currentStudent->voto_SO = mark;
-        so_mean += mark;
+        so_mean += (float) mark;
     }
 
-    so_mean /= settings->pop_size;
+    so_mean /= (float) (settings->pop_size);
 }
 
 /*
@@ -323,7 +323,7 @@ void waitForZombieChildren() {
 void instantiateChildren() {
     /* Allochiamo spazio per settings->AdE_max - settings->AdE_min + 1 contatori per i voti degli studenti. */
     char childrenIDString[16] = {0};
-    int currentStudentAdEMark = 0;
+    int currentStudentAdEMark;
 
     ade_marks = calloc(settings->AdE_max - settings->AdE_min + 1, sizeof(int));
 
@@ -359,12 +359,12 @@ void instantiateChildren() {
         }
     }
 
-    ade_mean /= settings->pop_size;
+    ade_mean /= (float) (settings->pop_size);
 }
 
 #ifdef DEBUG_GESTORE
 
-void printFoundSettings(SettingsData *settings) {
+void printFoundSettings(SettingsData *foundSettings) {
     int i;
 
     printf("[GESTORE] Trovate le impostazioni:\n"
@@ -378,15 +378,23 @@ void printFoundSettings(SettingsData *settings) {
            "\t- nof_refuse = %d\n"
            "\t- settingsCount = %d\n"
            "\t- numOfPreferences = %d\n"
-           "\t- prefPerc = [", settings->pop_size, settings->sim_duration, settings->AdE_min, settings->AdE_max,
-           settings->minGroupPref, settings->maxGroupPref, settings->nof_invites, settings->nof_refuse,
-           settings->settingsCount, settings->numOfPreferences);
+           "\t- prefPerc = [",
+           foundSettings->pop_size,
+           foundSettings->sim_duration,
+           foundSettings->AdE_min,
+           foundSettings->AdE_max,
+           foundSettings->minGroupPref,
+           foundSettings->maxGroupPref,
+           foundSettings->nof_invites,
+           foundSettings->nof_refuse,
+           foundSettings->settingsCount,
+           foundSettings->numOfPreferences);
 
-    for (i = 0; i < settings->numOfPreferences; i++) {
-        if (i == settings->numOfPreferences - 1) {
-            printf("%d]\n\n", settings->preferencePercentages[i]);
+    for (i = 0; i < foundSettings->numOfPreferences; i++) {
+        if (i == foundSettings->numOfPreferences - 1) {
+            printf("%d]\n\n", foundSettings->preferencePercentages[i]);
         } else {
-            printf("%d,", settings->preferencePercentages[i]);
+            printf("%d,", foundSettings->preferencePercentages[i]);
         }
     }
 }
