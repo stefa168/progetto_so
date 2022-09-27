@@ -22,6 +22,7 @@ Le funzionalità di base e la conseguente relazione del progetto sono descritte 
 - GCC
 - CMake
 - GNU/Linux o WSL
+- CLion come IDE (suggerito)
 
 ## Note
 
