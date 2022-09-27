@@ -21,7 +21,7 @@ Le funzionalità di base e la conseguente relazione del progetto sono descritte 
 
 - GCC
 - CMake
-- Linux o WSL
+- GNU/Linux o WSL
 
 ## Note
 
